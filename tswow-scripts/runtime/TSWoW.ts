@@ -15,6 +15,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 process.argv.push('--ipaths=./')
+import { writeHeapSnapshot } from "v8";
 import { commands } from "../util/Commands";
 import { wfs } from "../util/FileSystem";
 import { ipaths } from "../util/Paths";
@@ -43,6 +44,25 @@ import { applyTSTLHack } from "./TSTLHack";
 import * as path from 'path'
 
 const timer = Timer.start();
+
+
+if (!wfs.exists("./snapshots")) {
+  wfs.mkDirs("./snapshots");
+}
+
+function writeSnapshot() {
+  const genFile = writeHeapSnapshot();
+  let wd = wfs.absPath("./snapshots/" + genFile);
+  wfs.move(genFile, wd);
+  console.log(genFile);
+}
+
+setInterval(() => {
+  let memInMB = process.memoryUsage().heapUsed / 1024 / 1024;
+  if (Math.round(memInMB * 100) / 100 > 1000) {
+    writeSnapshot();
+  }
+}, 10000);
 
 // can be called from multiple places
 async function initTerminal()
