@@ -54,7 +54,6 @@ function writeSnapshot() {
   const genFile = writeHeapSnapshot();
   let wd = wfs.absPath("./snapshots/" + genFile);
   wfs.move(genFile, wd);
-  console.log(genFile);
 }
 
 setInterval(() => {
