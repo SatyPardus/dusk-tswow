@@ -9,4 +9,6 @@ void ClientExtensions::initialize() {
     LOG_INFO << "Character creation fixes applied";
     TooltipExtensions::Apply();
     LOG_INFO << "Tooltip extensions applied";
+    MovementExtensions::Apply();
+    LOG_INFO << "Movement extensions applied";
 }

@@ -52,6 +52,10 @@ enum SpellFamilyNames : uint32_t {
     SPELLFAMILY_PET         = 17
 };
 
+enum AuraType : uint32_t {
+    SPELL_AURA_CAN_GLIDE    = 347
+};
+
 static uint32_t dummy = 0;
 
 static char* sConnectorPlus = " + ";
@@ -75,6 +79,9 @@ CLIENT_FUNCTION(ClientDB__GetRow, 0x65C290, __thiscall, void*, (void*, uint32_t)
 CLIENT_FUNCTION(ClientDB__GetLocalizedRow, 0x4CFD20, __thiscall, int, (void*, uint32_t, void*))
 
 CLIENT_FUNCTION(SpellParserParseText, 0x57ABC0, __cdecl, void, (void*, void*, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t))
+
+CLIENT_FUNCTION(CGUnit_C__GetAuraCount, 0x4F8850, __thiscall, uint32_t, (void*))
+CLIENT_FUNCTION(CGUnit_C__HasAuraBySpellId, 0x7282A0, __thiscall, bool, (void*, uint32_t))
 
 // functions
 static int32_t GetPlayerField(uint32_t* ActivePlayer, uint32_t field) {

@@ -34,8 +34,10 @@ SET(CLIENT_EXTENSIONS_H
     ClientDB.h
     Character/CharacterFixes.h
     Character/CharacterDefines.h
+    Movement/MovementExtensions.h
     Tooltip/SpellTooltipExtensions.h
     Tooltip/TooltipDefines.h
+    Unit/UnitExtensions.h
 )
 
 SET(CLIENT_EXTENSIONS_CPP
@@ -50,11 +52,13 @@ SET(CLIENT_EXTENSIONS_CPP
     ClientMPQ.cpp
     ClientExtensions.cpp
     ClientDB.cpp
-    Character/CharacterFixes.cpp
-    Tooltip/SpellTooltipExtensions.cpp
     Camera/CVar.cpp
     Camera/WorldSpace.cpp
+    Character/CharacterFixes.cpp
     CustomLua/SpellFunctions.cpp
+    Movement/MovementExtensions.cpp
+    Tooltip/SpellTooltipExtensions.cpp
+    Unit/UnitExtensions.cpp
 )
 
 SET(CLIENT_EXTENSIONS_LUA

@@ -2,6 +2,7 @@
 
 #include "ClientDB.h"
 #include "Character/CharacterFixes.h"
+#include "Movement/MovementExtensions.h"
 #include "Tooltip/SpellTooltipExtensions.h"
 
 class ClientExtensions {
