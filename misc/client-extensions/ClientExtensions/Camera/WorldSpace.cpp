@@ -50,7 +50,7 @@ LUA_FUNCTION(ReloadMap, (lua_State* L)) {
         MapRow* row = 0;
         int32_t mapId = *reinterpret_cast<uint32_t*>(0xBD088C);
         CGUnit* activeObjectPtr = reinterpret_cast<CGUnit*>(ClntObjMgr::ObjectPtr(activePlayer, TYPEMASK_UNIT));
-        MovementInfo* moveInfo = activeObjectPtr->movementInfo;
+        CMovement* moveInfo = activeObjectPtr->movementInfo;
 
         if (mapId > -1) {
             row = reinterpret_cast<MapRow*>(ClientDB::GetRow(reinterpret_cast<void*>(0xAD4178), mapId));

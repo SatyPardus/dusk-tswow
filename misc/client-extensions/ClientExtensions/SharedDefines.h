@@ -47,6 +47,21 @@ enum GameError : uint32_t {
     GERR_SPELL_UNLEARNED_S  = 352,
 };
 
+enum MovementFlags : uint32_t {
+    MOVEMENTFLAG_FORWARD                                = 0x00000001,
+    MOVEMENTFLAG_BACKWARD                               = 0x00000002,
+    MOVEMENTFLAG_STRAFE_LEFT                            = 0x00000004,
+    MOVEMENTFLAG_STRAFE_RIGHT                           = 0x00000008,
+    MOVEMENTFLAG_LEFT                                   = 0x00000010,
+    MOVEMENTFLAG_RIGHT                                  = 0x00000020,
+    MOVEMENTFLAG_FALLING                                = 0x00001000,
+};
+
+// Aleist3r: Trinity has it listed as uint32_t but from what I remember from the client, it's treated as uint16_t so setting it to that
+enum MovementFlags2 : uint16_t {
+    MOVEMENTFLAG2_INTERPOLATED_TURNING                  = 0x00000800,
+};
+
 enum Powers : int32_t {
     POWER_MANA              = 0,
     POWER_RAGE              = 1,
@@ -124,14 +139,17 @@ struct C3Vector {
     float z;
 };
 
-struct MovementInfo {
+struct CMovement {
     uint32_t padding[2];
     uint64_t moverGUID;
     C3Vector position;
     float padding1C;
     float orientation;
     float pitch;
-    uint32_t padding28[74];
+    uint32_t padding28[7];
+    uint32_t movementFlags;
+    uint32_t movementFlags2;
+    float padding40[63];
     // TODO: add rest, probably when needed
 };
 
@@ -181,7 +199,7 @@ struct CGUnit {
     CGObject objectBase;
     UnitFields* unitData;
     uint32_t paddingD4;
-    MovementInfo* movementInfo;
+    CMovement* movementInfo;
     uint32_t padding34[612];
     uint32_t currentCastId;
     uint32_t padding[4];
@@ -403,6 +421,7 @@ namespace CGPetInfo_C {
 }
 
 namespace CGUnit_C {
+    CLIENT_FUNCTION(GetAuraCount, 0x4F8850, __thiscall, uint32_t, (CGUnit*))
     CLIENT_FUNCTION(GetShapeshiftFormId, 0x71AF70, __thiscall, uint32_t, (CGUnit*))
     CLIENT_FUNCTION(HasAuraBySpellId, 0x7282A0, __thiscall, bool, (CGUnit*, uint32_t))
     CLIENT_FUNCTION(HasAuraMatchingSpellClass, 0x7283A0, __thiscall, bool, (CGUnit*, uint32_t, SpellRow*))
@@ -418,6 +437,11 @@ namespace ClntObjMgr {
     CLIENT_FUNCTION(GetActivePlayer, 0x4D3790, __cdecl, uint64_t, ())
     CLIENT_FUNCTION(GetUnitFromName, 0x60C1F0, __cdecl, CGUnit*, (char*))
     CLIENT_FUNCTION(ObjectPtr, 0x4D4DB0, __cdecl, void*, (uint64_t, uint32_t))
+}
+
+namespace CMovement_C {
+    CLIENT_FUNCTION(sub_987E30, 0x987E30, __thiscall, void, (CMovement*))
+    CLIENT_FUNCTION(UpdatePositionFacingPitchAnchors, 0x9881D0, __thiscall, void, (CMovement*, bool))
 }
 
 namespace CVar_C {
