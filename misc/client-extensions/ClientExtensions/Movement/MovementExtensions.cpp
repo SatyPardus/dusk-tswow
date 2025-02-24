@@ -1,4 +1,6 @@
 #include "MovementExtensions.h"
+#include "Unit/UnitExtensions.h"
+#include "Logger.h"
 
 void MovementExtensions::Apply() {
     Util::OverwriteUInt32AtAddress(0x6EFE8A, Util::CalculateAddress(reinterpret_cast<uint32_t>(&SetFacingEx), 0x6EFE8E));
@@ -14,9 +16,9 @@ void MovementExtensions::Apply() {
 }
 
 bool MovementExtensions::CanPlayerGlide() {
-    bool result = false;
+    CGPlayer* activePlayer = reinterpret_cast<CGPlayer*>(ClntObjMgr::ObjectPtr(ClntObjMgr::GetActivePlayer(), TYPEMASK_PLAYER));
 
-    return result;
+    return UnitExtensions::HasAuraByTypeId(&activePlayer->unitBase, SPELL_AURA_CAN_GLIDE);
 }
 
 void __fastcall MovementExtensions::SetFacingEx(CMovement* _this, uint32_t unused, float yaw) {

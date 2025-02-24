@@ -5,6 +5,10 @@
 
 struct lua_State;
 
+enum AuraType : uint32_t {
+    SPELL_AURA_CAN_GLIDE                                    = 347,
+};
+
 enum Field : uint32_t {
     CURRENT_HP              = 18,
     CURRENT_MANA            = 19,
@@ -133,6 +137,25 @@ static char* sPluralS = "s";
 static char* sSpace = " ";
 
 // structs
+struct Aura {
+    uint64_t creator;
+    uint32_t spellId;
+    uint8_t auraFlags;
+    uint8_t level;
+    uint8_t stackAmount;
+    uint8_t padding;
+    uint32_t duration;
+    uint32_t endTime;
+};
+
+// Aleist3r: not sure it needs to be like this, need to ask around I guess
+#pragma pack(push, 4)
+struct AuraTable {
+    Aura auraList[16];
+    uint32_t length;
+};
+#pragma pack(pop)
+
 struct C3Vector {
     float x;
     float y;
@@ -204,7 +227,9 @@ struct CGUnit {
     uint32_t currentCastId;
     uint32_t padding[4];
     uint32_t currentChannelId;
-    uint32_t padding2[353];
+    uint32_t padding2[115];
+    AuraTable auras;
+    uint32_t padding4[141];
     // TODO: add rest, currently not needed
 };
 
@@ -465,6 +490,7 @@ namespace SpellParser {
 namespace SpellRec_C {
     CLIENT_FUNCTION(GetLevel, 0x7FF070, __cdecl, uint32_t, (SpellRow*, uint32_t, uint32_t))
     CLIENT_FUNCTION(GetCastTime, 0x7FF180, __cdecl, uint32_t, (SpellRow*, uint32_t, uint32_t, uint32_t))
+    CLIENT_FUNCTION(HasAura, 0x7FDE50, __cdecl, bool, (SpellRow*, uint32_t))
     CLIENT_FUNCTION(ModifySpellValueInt, 0x7FDB50, __cdecl, void, (SpellRow*, uint32_t*, uint32_t))
 }
 
