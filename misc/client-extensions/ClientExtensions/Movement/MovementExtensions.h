@@ -10,5 +10,6 @@ private:
 
     static void __fastcall SetFacingEx(CMovement* _this, uint32_t unused, float yaw);
     static void __fastcall StartTurnEx(CMovement* _this, uint32_t unused, bool isLeft);
+    static bool __fastcall OnPitchStop(CMovement* _this, uint32_t unused);
     friend class ClientExtensions;
 };

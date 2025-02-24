@@ -5,17 +5,6 @@
 
 struct lua_State;
 
-enum ObjectTypeMask : uint32_t {
-    TYPEMASK_OBJECT         = 0x0001,
-    TYPEMASK_ITEM           = 0x0002,
-    TYPEMASK_CONTAINER      = 0x0004,
-    TYPEMASK_UNIT           = 0x0008,
-    TYPEMASK_PLAYER         = 0x0010,
-    TYPEMASK_GAMEOBJECT     = 0x0020,
-    TYPEMASK_DYNAMICOBJECT  = 0x0040,
-    TYPEMASK_CORPSE         = 0x0080,
-};
-
 enum Field : uint32_t {
     CURRENT_HP              = 18,
     CURRENT_MANA            = 19,
@@ -60,6 +49,17 @@ enum MovementFlags : uint32_t {
 // Aleist3r: Trinity has it listed as uint32_t but from what I remember from the client, it's treated as uint16_t so setting it to that
 enum MovementFlags2 : uint16_t {
     MOVEMENTFLAG2_INTERPOLATED_TURNING                  = 0x00000800,
+};
+
+enum ObjectTypeMask : uint32_t {
+    TYPEMASK_OBJECT         = 0x0001,
+    TYPEMASK_ITEM           = 0x0002,
+    TYPEMASK_CONTAINER      = 0x0004,
+    TYPEMASK_UNIT           = 0x0008,
+    TYPEMASK_PLAYER         = 0x0010,
+    TYPEMASK_GAMEOBJECT     = 0x0020,
+    TYPEMASK_DYNAMICOBJECT  = 0x0040,
+    TYPEMASK_CORPSE         = 0x0080,
 };
 
 enum Powers : int32_t {
