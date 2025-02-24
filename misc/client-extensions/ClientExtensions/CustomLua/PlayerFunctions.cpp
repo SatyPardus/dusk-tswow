@@ -72,3 +72,10 @@ LUA_FUNCTION(UpdateSpellChargeMap, (lua_State* L)) {
     ClientLua::PushNil(L);
     return 1;
 }
+
+LUA_FUNCTION(UpdateDoubleJumpState, (lua_State* L)) {
+    CharacterDefines::SetAllowDoubleJumping(static_cast<bool>(ClientLua::GetNumber(L, 1)));
+    ClientLua::PushNil(L);
+    return 1;
+}
+

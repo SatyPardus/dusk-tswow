@@ -32,4 +32,14 @@ namespace CharacterDefines {
     };
 
     inline std::unordered_map<uint32_t, SpellCharge> spellChargeMap;
+
+    //
+    inline bool allowDoubleJumping = false;
+    inline bool canDoubleJump = false;
+
+    inline bool GetAllowDoubleJumping() { return allowDoubleJumping; }
+    inline void SetAllowDoubleJumping(bool allow) { allowDoubleJumping = allow; }
+
+    inline bool CanDoubleJump() { return canDoubleJump; }
+    inline void SetCanDoubleJump(bool allow) { canDoubleJump = allow; }
 };

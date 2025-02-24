@@ -172,7 +172,10 @@ struct CMovement {
     uint32_t padding28[7];
     uint32_t movementFlags;
     uint32_t movementFlags2;
-    float padding40[63];
+    float padding40[11];
+    uint32_t padding78[6];
+    float speed[7];
+    float paddingAC[39];
     // TODO: add rest, probably when needed
 };
 
