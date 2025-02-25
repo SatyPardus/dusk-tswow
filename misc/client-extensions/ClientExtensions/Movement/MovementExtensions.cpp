@@ -1,4 +1,5 @@
 #include "MovementExtensions.h"
+#include "Character/CharacterDefines.h"
 #include "Unit/UnitExtensions.h"
 #include "Logger.h"
 
@@ -10,9 +11,9 @@ void MovementExtensions::Apply() {
     Util::OverwriteUInt32AtAddress(0x6EFD88, Util::CalculateAddress(reinterpret_cast<uint32_t>(&StartTurnEx), 0x6EFD8C));
     Util::OverwriteUInt32AtAddress(0x6F1041, Util::CalculateAddress(reinterpret_cast<uint32_t>(&StartTurnEx), 0x6F1045));
     // Not sure if this is really needed but w/e
-    Util::OverwriteUInt32AtAddress(0x6E9992, Util::CalculateAddress(reinterpret_cast<uint32_t>(&OnPitchStop), 0x6E9996));
-    Util::OverwriteUInt32AtAddress(0x6EFDC6, Util::CalculateAddress(reinterpret_cast<uint32_t>(&OnPitchStop), 0x6EFDCA));
-    Util::OverwriteUInt32AtAddress(0x6F10AA, Util::CalculateAddress(reinterpret_cast<uint32_t>(&OnPitchStop), 0x6F10AE));
+    Util::OverwriteUInt32AtAddress(0x6E9992, Util::CalculateAddress(reinterpret_cast<uint32_t>(&OnPitchStopEx), 0x6E9996));
+    Util::OverwriteUInt32AtAddress(0x6EFDC6, Util::CalculateAddress(reinterpret_cast<uint32_t>(&OnPitchStopEx), 0x6EFDCA));
+    Util::OverwriteUInt32AtAddress(0x6F10AA, Util::CalculateAddress(reinterpret_cast<uint32_t>(&OnPitchStopEx), 0x6F10AE));
 }
 
 bool MovementExtensions::CanPlayerGlide() {
@@ -93,7 +94,7 @@ void __fastcall MovementExtensions::StartTurnEx(CMovement* _this, uint32_t unuse
 }
 
 // Aleist3r: refer to 0x989010
-bool MovementExtensions::OnPitchStop(CMovement* _this, uint32_t unused) {
+bool MovementExtensions::OnPitchStopEx(CMovement* _this, uint32_t unused) {
     bool isFalling = _this->movementFlags & MOVEMENTFLAG_FALLING;
     bool canUpdateDirection = CanPlayerGlide();
 
