@@ -10,6 +10,18 @@ void CharacterExtensions::Apply() {
     SpellUnlearnExtension();
 }
 
+void CharacterExtensions::ResetCustomData() {
+    CharacterDefines::spellChargeMap.clear();
+    CharacterDefines::SetAllowDoubleJumping(false);
+    CharacterDefines::SetCanDoubleJump(false);
+    CharacterDefines::setMasteryAmount(0);
+    CharacterDefines::setMasteryPct(0);
+    CharacterDefines::setCharActiveSpec(0);
+
+    for (int i = 0; i < 4; i++)
+        CharacterDefines::setMasteryRatingSpec(i, 1);
+}
+
 void CharacterExtensions::ChangeLFGRoleFunctionPointers() {
     Util::OverwriteUInt32AtAddress(0x553E90, Util::CalculateAddress(reinterpret_cast<uint32_t>(&CheckLFGRoles), 0x553E94));
     Util::OverwriteUInt32AtAddress(0x55736D, Util::CalculateAddress(reinterpret_cast<uint32_t>(&CheckLFGRoles), 0x557371));

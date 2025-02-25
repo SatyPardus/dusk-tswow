@@ -1,6 +1,7 @@
 #include "windows.h"
 #include "ClientExtensions.h"
 #include "CDBCMgr/CDBCMgr.h"
+#include "ClientDetours.h"
 #include "Logger.h"
 
 void ClientExtensions::initialize() {
@@ -16,4 +17,14 @@ void ClientExtensions::initialize() {
     LOG_INFO << "Movement extensions applied";
     MiscFixes::Apply();
     LOG_INFO << "Misc fixes applied";
+}
+
+void ClientExtensions::ResetCustomData() {
+    CharacterExtensions::ResetCustomData();
+}
+
+CLIENT_DETOUR(OnHandleDisconnect, 0x4DA9D0, __cdecl, int, (int a1)) {
+    ClientExtensions::ResetCustomData();
+
+    return OnHandleDisconnect(a1);
 }

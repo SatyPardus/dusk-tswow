@@ -8,6 +8,7 @@ private:
 
     static bool CanPlayerGlide();
 
+    static bool __fastcall OnPitchStopEx(CMovement* _this, uint32_t unused);
     static void __fastcall SetFacingEx(CMovement* _this, uint32_t unused, float yaw);
     static void __fastcall StartTurnEx(CMovement* _this, uint32_t unused, bool isLeft);
     friend class ClientExtensions;

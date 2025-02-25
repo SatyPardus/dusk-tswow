@@ -5,15 +5,8 @@
 
 struct lua_State;
 
-enum ObjectTypeMask : uint32_t {
-    TYPEMASK_OBJECT         = 0x0001,
-    TYPEMASK_ITEM           = 0x0002,
-    TYPEMASK_CONTAINER      = 0x0004,
-    TYPEMASK_UNIT           = 0x0008,
-    TYPEMASK_PLAYER         = 0x0010,
-    TYPEMASK_GAMEOBJECT     = 0x0020,
-    TYPEMASK_DYNAMICOBJECT  = 0x0040,
-    TYPEMASK_CORPSE         = 0x0080,
+enum AuraType : uint32_t {
+    SPELL_AURA_CAN_GLIDE                                    = 347,
 };
 
 enum Field : uint32_t {
@@ -60,6 +53,17 @@ enum MovementFlags : uint32_t {
 // Aleist3r: Trinity has it listed as uint32_t but from what I remember from the client, it's treated as uint16_t so setting it to that
 enum MovementFlags2 : uint16_t {
     MOVEMENTFLAG2_INTERPOLATED_TURNING                  = 0x00000800,
+};
+
+enum ObjectTypeMask : uint32_t {
+    TYPEMASK_OBJECT         = 0x0001,
+    TYPEMASK_ITEM           = 0x0002,
+    TYPEMASK_CONTAINER      = 0x0004,
+    TYPEMASK_UNIT           = 0x0008,
+    TYPEMASK_PLAYER         = 0x0010,
+    TYPEMASK_GAMEOBJECT     = 0x0020,
+    TYPEMASK_DYNAMICOBJECT  = 0x0040,
+    TYPEMASK_CORPSE         = 0x0080,
 };
 
 enum Powers : int32_t {
@@ -133,6 +137,25 @@ static char* sPluralS = "s";
 static char* sSpace = " ";
 
 // structs
+struct Aura {
+    uint64_t creator;
+    uint32_t spellId;
+    uint8_t auraFlags;
+    uint8_t level;
+    uint8_t stackAmount;
+    uint8_t padding;
+    uint32_t duration;
+    uint32_t endTime;
+};
+
+// Aleist3r: not sure it needs to be like this, need to ask around I guess
+#pragma pack(push, 4)
+struct AuraTable {
+    Aura auraList[16];
+    uint32_t length;
+};
+#pragma pack(pop)
+
 struct C3Vector {
     float x;
     float y;
@@ -149,7 +172,10 @@ struct CMovement {
     uint32_t padding28[7];
     uint32_t movementFlags;
     uint32_t movementFlags2;
-    float padding40[63];
+    float padding40[11];
+    uint32_t padding78[6];
+    float speed[7];
+    float paddingAC[39];
     // TODO: add rest, probably when needed
 };
 
@@ -204,7 +230,9 @@ struct CGUnit {
     uint32_t currentCastId;
     uint32_t padding[4];
     uint32_t currentChannelId;
-    uint32_t padding2[353];
+    uint32_t padding2[115];
+    AuraTable auras;
+    uint32_t padding4[141];
     // TODO: add rest, currently not needed
 };
 
@@ -465,6 +493,7 @@ namespace SpellParser {
 namespace SpellRec_C {
     CLIENT_FUNCTION(GetLevel, 0x7FF070, __cdecl, uint32_t, (SpellRow*, uint32_t, uint32_t))
     CLIENT_FUNCTION(GetCastTime, 0x7FF180, __cdecl, uint32_t, (SpellRow*, uint32_t, uint32_t, uint32_t))
+    CLIENT_FUNCTION(HasAura, 0x7FDE50, __cdecl, bool, (SpellRow*, uint32_t))
     CLIENT_FUNCTION(ModifySpellValueInt, 0x7FDB50, __cdecl, void, (SpellRow*, uint32_t*, uint32_t))
 }
 

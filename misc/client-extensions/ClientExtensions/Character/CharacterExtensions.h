@@ -8,6 +8,7 @@ private:
     static void ChangeLFGRoleFunctionPointers();
     static void SpellLearnExtension();
     static void SpellUnlearnExtension();
+    static void ResetCustomData();
 
     static uint32_t CheckLFGRoles(uint32_t roles);
     static uint32_t GetClassRoles(uint32_t classId);
