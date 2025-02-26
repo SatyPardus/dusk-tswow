@@ -174,6 +174,12 @@ struct C4Vector {
     float o;
 };
 
+struct CMoveSpline {
+    uint32_t padding0x00[11];
+    uint32_t time;
+    uint32_t padding[13];
+};
+
 struct CMovement {
     uint32_t padding[2];
     uint64_t moverGUID;
@@ -205,7 +211,9 @@ struct CMovement {
     float flightBackSpeed;
     float turnRate;
     float pitchRate;
-    float paddingAC[37];
+    float paddingAC[2];
+    CMoveSpline* spline;
+    float paddingi[34];
     // TODO: add rest, probably when needed
 };
 
