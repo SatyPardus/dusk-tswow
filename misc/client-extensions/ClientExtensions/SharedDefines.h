@@ -156,10 +156,22 @@ struct AuraTable {
 };
 #pragma pack(pop)
 
+struct C2Vector {
+    float x;
+    float y;
+};
+
 struct C3Vector {
     float x;
     float y;
     float z;
+};
+
+struct C4Vector {
+    float x;
+    float y;
+    float z;
+    float o;
 };
 
 struct CMovement {
@@ -172,7 +184,17 @@ struct CMovement {
     uint32_t padding28[7];
     uint32_t movementFlags;
     uint32_t movementFlags2;
-    float padding40[11];
+    float someX;
+    float someY;
+    float someZ;
+    float someO;
+    float somePitch;
+    float padding60;
+    float cosAngle;
+    float sinAngle;
+    float padding6C;
+    float someCos;
+    float someSin;
     uint32_t padding78[6];
     float walkSpeed;
     float runSpeed;

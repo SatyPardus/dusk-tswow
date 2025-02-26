@@ -43,12 +43,12 @@ void __fastcall MovementExtensions::StartTurnEx(CMovement* _this, uint32_t unuse
 
     _this->movementFlags = (_this->movementFlags & 0xFFFFFFCF) | (isLeft ? MOVEMENTFLAG_LEFT : MOVEMENTFLAG_RIGHT);
     _this->movementFlags2 &= ~MOVEMENTFLAG2_INTERPOLATED_TURNING;
-    _this->padding40[0] = _this->position.x;
-    _this->padding40[1] = _this->position.y;
-    _this->padding40[2] = _this->position.z;
-    _this->padding40[3] = _this->orientation;
-    _this->padding40[4] = _this->pitch;
-    _this->padding40[5] = 0;
+    _this->someX = _this->position.x;
+    _this->someY = _this->position.y;
+    _this->someZ = _this->position.z;
+    _this->someO = _this->orientation;
+    _this->somePitch = _this->pitch;
+    _this->padding60 = 0.0f;
 
     if (isFalling && !canUpdateDirection)
         return;
@@ -59,37 +59,51 @@ void __fastcall MovementExtensions::StartTurnEx(CMovement* _this, uint32_t unuse
         // Diagonal movement (forward/backward + strafe)
         const float sin45 = 0.70710677f; // sin(45 degrees)
 
-        if (_this->movementFlags & MOVEMENTFLAG_BACKWARD)
-            for (int i = 6; i <= 10; ++i) 
-                _this->padding40[i] = -_this->padding40[i];
+        if (_this->movementFlags & MOVEMENTFLAG_BACKWARD) {
+            _this->cosAngle = -_this->cosAngle;
+            _this->sinAngle = -_this->sinAngle;
+            _this->padding6C = -_this->padding6C;
+            _this->someCos = -_this->someCos;
+            _this->someSin = -_this->someSin;
+        }
 
-        std::swap(_this->padding40[9], _this->padding40[10]);
+        std::swap(_this->someCos, _this->someSin);
 
         if (_this->movementFlags & MOVEMENTFLAG_STRAFE_LEFT)
-            _this->padding40[9] = -_this->padding40[9];
+            _this->someCos = -_this->someCos;
         else
-            _this->padding40[10] = -_this->padding40[10];
+            _this->someSin = -_this->someCos;
 
-        for (int i = 6; i <= 10; ++i)
-            _this->padding40[i] *= sin45;
+        _this->cosAngle += _this->someCos;
+        _this->sinAngle += _this->someSin;
+        _this->someCos += _this->someCos;
+        _this->someSin += _this->someSin;
+        _this->cosAngle *= sin45;
+        _this->sinAngle *= sin45;
+        _this->padding6C *= sin45;
+        _this->someCos *= sin45;
+        _this->someSin *= sin45;
     }
     else if (_this->movementFlags & (MOVEMENTFLAG_STRAFE_LEFT | MOVEMENTFLAG_STRAFE_RIGHT)) {
         // Strafe-only movement
-        std::swap(_this->padding40[9], _this->padding40[10]);
+        std::swap(_this->someCos, _this->someSin);
 
         if (_this->movementFlags & MOVEMENTFLAG_STRAFE_LEFT)
-            _this->padding40[9] = -_this->padding40[9];
+            _this->someCos = -_this->someCos;
         else
-            _this->padding40[10] = -_this->padding40[10];
+            _this->someSin = -_this->someCos;
 
-        _this->padding40[6] = _this->padding40[9];
-        _this->padding40[7] = _this->padding40[10];
-        _this->padding40[8] = 0.0f;
+        _this->cosAngle = _this->someCos;
+        _this->sinAngle = _this->someSin;
+        _this->padding6C = 0.0f;
     }
     else if (_this->movementFlags & MOVEMENTFLAG_BACKWARD) {
         // Backward-only movement
-        for (int i = 6; i <= 10; ++i) 
-            _this->padding40[i] = -_this->padding40[i];
+        _this->cosAngle = -_this->cosAngle;
+        _this->sinAngle = -_this->sinAngle;
+        _this->padding6C = -_this->padding6C;
+        _this->someCos = -_this->someCos;
+        _this->someSin = -_this->someSin;
     }
 }
 
@@ -101,100 +115,70 @@ bool MovementExtensions::OnPitchStopEx(CMovement* _this, uint32_t unused) {
     if (!(_this->movementFlags & (MOVEMENTFLAG_LEFT | MOVEMENTFLAG_RIGHT)))
         return false;
 
-    _this->padding40[0] = _this->position.x;
-    _this->padding40[1] = _this->position.y;
-    _this->padding40[2] = _this->position.z;
-    _this->padding40[3] = _this->orientation;
-    _this->padding40[4] = _this->pitch;
-    _this->padding40[5] = 0.0;
+    _this->someX = _this->position.x;
+    _this->someY = _this->position.y;
+    _this->someZ = _this->position.z;
+    _this->someO = _this->orientation;
+    _this->somePitch = _this->pitch;
+    _this->padding60 = 0.0;
     _this->movementFlags &= 0xFFFFFFCF;
 
-    if (!isFalling || (isFalling && canUpdateDirection)) {
-        CMovement_C::sub_987E30(_this);
+    if (isFalling && !canUpdateDirection)
+        return true;
 
-        if (_this->movementFlags & (MOVEMENTFLAG_FORWARD | MOVEMENTFLAG_BACKWARD)) {
-            if (_this->movementFlags & (MOVEMENTFLAG_STRAFE_LEFT | MOVEMENTFLAG_STRAFE_RIGHT)) {
-                const float sin45 = 0.70710677;
-                float padding0x64 = _this->padding40[6];
-                float padding0x68 = _this->padding40[7];
-                float padding0x6C = _this->padding40[8];
-                float padding0x70 = _this->padding40[9];
-                float padding0x74 = _this->padding40[10];
+    CMovement_C::sub_987E30(_this);
 
-                if (_this->movementFlags & MOVEMENTFLAG_BACKWARD)
-                {
-                    padding0x64 = -_this->padding40[6];
-                    padding0x68 = -_this->padding40[7];
-                    padding0x6C = -_this->padding40[8];
-                    padding0x70 = -_this->padding40[9];
-                    padding0x74 = -_this->padding40[10];
-                }
+    // Aleist3r: seems to essentially refactor to the same code tester did, just with additional `return true;`
+    if (_this->movementFlags & (MOVEMENTFLAG_FORWARD | MOVEMENTFLAG_BACKWARD) && _this->movementFlags & (MOVEMENTFLAG_STRAFE_LEFT | MOVEMENTFLAG_STRAFE_RIGHT)) {
+        // Diagonal movement (forward/backward + strafe)
+        const float sin45 = 0.70710677f; // sin(45 degrees)
 
-                std::swap(_this->padding40[9], _this->padding40[10]);
-
-                if (_this->movementFlags & MOVEMENTFLAG_STRAFE_LEFT)
-                    _this->padding40[9] = -_this->padding40[9];
-                else
-                    _this->padding40[10] = -_this->padding40[10];
-
-                //float v9 = _this->padding40[10];
-                //float v22 = _this->padding40[9] + padding0x64;
-                //_this->padding40[6] = v22;
-                //float v25 = v9 + padding0x68;
-                //_this->padding40[7] = v25;
-                //_this->padding40[8] = padding0x6C;
-                //_this->padding40[9] = _this->padding40[9] + padding0x70;
-                //_this->padding40[10] = _this->padding40[10] + padding0x74;
-                //_this->padding40[6] = _this->padding40[6] * sin45;
-                //_this->padding40[7] = _this->padding40[7] * sin45;
-                //_this->padding40[8] = _this->padding40[8] * sin45;
-                //_this->padding40[9] = _this->padding40[9] * sin45;
-                //_this->padding40[10] = _this->padding40[10] * sin45;
-
-                _this->padding40[6] = (_this->padding40[9] + padding0x64) * sin45;
-                _this->padding40[7] = (_this->padding40[10] + padding0x68) * sin45;
-                _this->padding40[8] = padding0x6C * sin45;
-                _this->padding40[9] = (_this->padding40[9] + padding0x70) * sin45;
-                _this->padding40[10] = (_this->padding40[10] + padding0x74) * sin45;
-
-                goto LABEL_19;
-            }
-LABEL_17:
-            if (_this->movementFlags & MOVEMENTFLAG_BACKWARD) {
-                //float v15 = -_this->padding40[6];
-                //float v18 = -_this->padding40[7];
-                //float v12 = _this->padding40[8];
-                //_this->padding40[6] = v15;
-                //_this->padding40[7] = v18;
-                //float v20 = -v12;
-                //float v26 = -_this->padding40[9];
-                //float v13 = _this->padding40[10];
-                //_this->padding40[9] = v26;
-                //float v29 = -v13;
-                //_this->padding40[10] = v29;
-
-                _this->padding40[6] = -_this->padding40[6];
-                _this->padding40[7] = -_this->padding40[7];
-                _this->padding40[8] = -_this->padding40[8];
-                _this->padding40[9] = -_this->padding40[9];
-                _this->padding40[10] = -_this->padding40[10];
-            }
-            goto LABEL_19;
+        if (_this->movementFlags & MOVEMENTFLAG_BACKWARD) {
+            _this->cosAngle = -_this->cosAngle;
+            _this->sinAngle = -_this->sinAngle;
+            _this->padding6C = -_this->padding6C;
+            _this->someCos = -_this->someCos;
+            _this->someSin = -_this->someSin;
         }
-        if (!(_this->movementFlags & (MOVEMENTFLAG_STRAFE_LEFT | MOVEMENTFLAG_STRAFE_RIGHT)))
-            goto LABEL_17;
 
-        std::swap(_this->padding40[9], _this->padding40[10]);
+        std::swap(_this->someCos, _this->someSin);
 
         if (_this->movementFlags & MOVEMENTFLAG_STRAFE_LEFT)
-            _this->padding40[9] = -_this->padding40[9];
+            _this->someCos = -_this->someCos;
         else
-            _this->padding40[10] = -_this->padding40[10];
+            _this->someSin = -_this->someCos;
 
-        _this->padding40[6] = _this->padding40[9];
-        _this->padding40[7] = _this->padding40[10];
-        _this->padding40[8] = 0.0f;
+        _this->cosAngle += _this->someCos;
+        _this->sinAngle += _this->someSin;
+        _this->someCos += _this->someCos;
+        _this->someSin += _this->someSin;
+        _this->cosAngle *= sin45;
+        _this->sinAngle *= sin45;
+        _this->padding6C *= sin45;
+        _this->someCos *= sin45;
+        _this->someSin *= sin45;
     }
-LABEL_19:
+    else if (_this->movementFlags & (MOVEMENTFLAG_STRAFE_LEFT | MOVEMENTFLAG_STRAFE_RIGHT)) {
+        // Strafe-only movement
+        std::swap(_this->someCos, _this->someSin);
+
+        if (_this->movementFlags & MOVEMENTFLAG_STRAFE_LEFT)
+            _this->someCos = -_this->someCos;
+        else
+            _this->someSin = -_this->someCos;
+
+        _this->cosAngle = _this->someCos;
+        _this->sinAngle = _this->someSin;
+        _this->padding6C = 0.0f;
+    }
+    else if (_this->movementFlags & MOVEMENTFLAG_BACKWARD) {
+        // Backward-only movement
+        _this->cosAngle = -_this->cosAngle;
+        _this->sinAngle = -_this->sinAngle;
+        _this->padding6C = -_this->padding6C;
+        _this->someCos = -_this->someCos;
+        _this->someSin = -_this->someSin;
+    }
+
     return true;
 }
