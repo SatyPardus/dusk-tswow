@@ -8,15 +8,31 @@ LUA_FUNCTION(FireActionBarSlotUpdateEvent, (lua_State* L)) {
     if (slotID < 144)
         FrameScript::SignalEvent(EVENT_ACTIONBAR_SLOT_CHANGED, "%d", slotID + 1);
 
-    ClientLua::PushNil(L);
-    return 1;
+    return 0;
 }
 
 LUA_FUNCTION(FireTalentUpdateEvent, (lua_State* L)) {
     FrameScript::SignalEvent(EVENT_PLAYER_TALENT_UPDATE, 0);
 
-    ClientLua::PushNil(L);
-    return 1;
+    return 0;
+}
+
+LUA_FUNCTION(FlashGameWindow, (lua_State* L)) {
+    HWND activeWindow = *(HWND*)0xD41620;
+
+    if (activeWindow && GetForegroundWindow() != activeWindow) {
+        FLASHWINFO flashInfo;
+
+        flashInfo.cbSize = sizeof(flashInfo);
+        flashInfo.hwnd = activeWindow;
+        flashInfo.dwFlags = FLASHW_TIMERNOFG | FLASHW_TRAY;
+        flashInfo.uCount = -1;
+        flashInfo.dwTimeout = 500;
+
+        FlashWindowEx(&flashInfo);
+    }
+
+    return 0;
 }
 
 LUA_FUNCTION(FindSpellActionBarSlot, (lua_State* L)) {
@@ -58,8 +74,7 @@ LUA_FUNCTION(ReplaceActionBarSpell, (lua_State* L)) {
             }
         }
 
-    ClientLua::PushNil(L);
-    return 1;
+    return 0;
 }
 
 LUA_FUNCTION(SetSpellInActionBarSlot, (lua_State* L)) {
@@ -76,6 +91,5 @@ LUA_FUNCTION(SetSpellInActionBarSlot, (lua_State* L)) {
         ClientPacket::MSG_SET_ACTION_BUTTON(slotID, 1, 0);
     }
 
-    ClientLua::PushNil(L);
-    return 1;
+    return 0;
 }
