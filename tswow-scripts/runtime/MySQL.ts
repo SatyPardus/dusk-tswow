@@ -265,7 +265,8 @@ export namespace mysql {
                // '--log_syslog=0',
                 '--console',
                 '--wait-timeout=2147483',
-                '--wait_timeout=2147483',
+                '--max_connections=400',
+                '--innodb_buffer_pool_size=2G',
                 `--init-file=${wfs.absPath(ipaths.bin.mysql_startup.get())}`,
                 `--datadir=${wfs.absPath(ipaths.coredata.database.get())}`
             ]);

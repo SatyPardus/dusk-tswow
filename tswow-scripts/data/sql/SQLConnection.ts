@@ -22,6 +22,7 @@ import { SqlRow } from './SQLRow';
 import { SqlTable } from './SQLTable';
 import { translate } from './SQLTranslate';
 import deasync = require('deasync');
+const { Worker } = require('worker_threads');
 
 export class PreparedStatement {
     private asyncStatement: any;
@@ -114,6 +115,7 @@ export class Connection {
     protected early: string[] = [];
     protected normal: string[] = [];
     protected late: string[] = [];
+    protected workerCount = 50
 
     databaseName() {
         return this.settings.database;
@@ -151,53 +153,43 @@ export class Connection {
     }
 
     async apply() {
-        const doPriority = async (name: string) => {
-            let priority: string[] = this[name]
+        const doPriority = async (name) => {
+            const queries: any[][] = [];
+            for (let i = 0; i < this.workerCount; i++)
+                queries.push([])
 
-            let promises = priority.map((x) => new Promise<void>((res, rej) => {
-                if (this.async === undefined) {
-                    return rej(`Tried to apply while async adapter was disconnected`);
-                }
-
-                SqlConnection.log(this.settings.database, x);
-
-                this.async.query(x, (err) => {
-                    if (err) {
-                        err.message = `(For SQL "${x}")\n` + err.message;
-                        return rej(err);
-                    } else {
-                        return res();
-                    }
-                })
-            }))
-
+            let count = 0;
+            for (let i = 0; i < this[name].length; i++) {
+                queries[count % this.workerCount].push({ type: 'query', query: this[name][i] });
+                count++
+            }
             for (let i = 0; i < this.statements.length; i++) {
                 const statement = this.statements[i];
                 for (let j = 0; j < statement[name].length; j++) {
                     const values = statement[name][j];
-                    promises.push(new Promise((res, rej) => {
-                        try {
-                            this.async.execute(statement.query, values, err => {
-                                if (err) {
-                                    if (err.message == undefined) {
-                                        err.message = ''
-                                    }
-                                    err.message += ` (For SQL "${statement.query}" with values (${JSON.stringify(values, (_, value) => typeof (value) == 'bigint' ? value.toString() : value)}))\n${err.message}`
-                                    rej(err);
-                                } else {
-                                    res();
-                                }
-                            })
-                        } catch (err) {
-                            err.message += ` (For SQL "${statement.query}" with values (${JSON.stringify(values, (_, value) => typeof (value) == 'bigint' ? value.toString() : value)}))\n${err.message}`
-                            rej(err)
-                        }
-                    }))
+                    queries[count % this.workerCount].push({ type: 'exec', query: statement.query, values: values });
+                    count++
                 }
             }
 
+            let promises = []
+            for (let i = 0; i < queries.length; i++) {
+                if (queries[i].length > 0)
+                    promises.push(
+                        new Promise<void>((res, rej) => {
+                            new Worker("./bin/scripts/wow/data/sql/SQLWorker.js", {
+                                workerData: { queryInfo: queries[i], db: this.settings }
+                            }).on('message', (message) => {
+                                if (message.err) {
+                                    console.log(message.err)
+                                }
+                                if (message.final)
+                                    res()
+                            })
+                        }));
+            }
             return Promise.all(promises);
-        }
+        };
 
         await doPriority('early');
         await doPriority('normal');
