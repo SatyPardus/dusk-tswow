@@ -64,12 +64,12 @@ export class PreparedStatement {
 
 export class Connection {
     static end(connection: Connection) {
-        if(connection.sync !== undefined)  {
+        if (connection.sync !== undefined) {
             connection.sync.end();
             connection.sync = undefined;
         }
 
-        if(connection.async !== undefined) {
+        if (connection.async !== undefined) {
             connection.async.end();
             connection.async = undefined;
         }
@@ -77,20 +77,20 @@ export class Connection {
 
     static connect(connection: Connection) {
         this.end(connection);
-        if(NodeConfig.UsePooling) {
-            connection.async = mysql.createPool(Object.assign({}, connection.settings, { enableKeepAlive: true}));
-            connection.sync = mysql.createPool(Object.assign({}, connection.settings, { enableKeepAlive: true}));
+        if (NodeConfig.UsePooling) {
+            connection.async = mysql.createPool(Object.assign({}, connection.settings, { enableKeepAlive: true }));
+            connection.sync = mysql.createPool(Object.assign({}, connection.settings, { enableKeepAlive: true }));
         } else {
             connection.async = mysql.createConnection(connection.settings);
             connection.sync = mysql.createConnection(connection.settings);
-            connection.async.connect((err)=>{
-                if(!err) return;
-                console.error(`Failed to connect with settings`,connection.settings,err)
+            connection.async.connect((err) => {
+                if (!err) return;
+                console.error(`Failed to connect with settings`, connection.settings, err)
                 process.exit(-1);
             });
-            connection.sync.connect((err)=>{
-                if(!err) return;
-                console.error(`Failed to connect with settings`,connection.settings,err)
+            connection.sync.connect((err) => {
+                if (!err) return;
+                console.error(`Failed to connect with settings`, connection.settings, err)
                 process.exit(-1);
             });
         }
@@ -120,15 +120,15 @@ export class Connection {
     }
 
     read(query: string) {
-        if(this.sync===undefined) {
+        if (this.sync === undefined) {
             throw new Error(
-                  `Tried to read from a disconnected adapter.\n`
+                `Tried to read from a disconnected adapter.\n`
                 + `This typically indicates that your node_modules folder is corrupt. Try deleting it, re-run 'npm i' and restart TSWoW.\n`
                 + `\n`
                 + `If the problem persists, please report this as a bug.`
             );
         }
-        SqlConnection.log(this.settings.database,query);
+        SqlConnection.log(this.settings.database, query);
         return this.syncQuery(query);
     }
 
@@ -154,39 +154,40 @@ export class Connection {
         const doPriority = async (name: string) => {
             let priority: string[] = this[name]
 
-            let promises = priority.map((x)=>new Promise<void>((res,rej)=>{
-                if(this.async===undefined) {
+            let promises = priority.map((x) => new Promise<void>((res, rej) => {
+                if (this.async === undefined) {
                     return rej(`Tried to apply while async adapter was disconnected`);
                 }
 
-                SqlConnection.log(this.settings.database,x);
+                SqlConnection.log(this.settings.database, x);
 
-                this.async.query(x,(err)=>{
-                        if(err){
-                            err.message = `(For SQL "${x}")\n`+err.message;
-                            return rej(err);
+                this.async.query(x, (err) => {
+                    if (err) {
+                        err.message = `(For SQL "${x}")\n` + err.message;
+                        return rej(err);
                     } else {
                         return res();
-                }})
+                    }
+                })
             }))
 
-            this.statements.forEach(x=>{
-                (x[name] as any[][]).forEach(y=>{
-                    promises.push(new Promise((res,rej)=>{
+            this.statements.forEach(x => {
+                (x[name] as any[][]).forEach(y => {
+                    promises.push(new Promise((res, rej) => {
                         try {
-                            this.async.execute(x.query,y, err => {
-                                if(err) {
-                                    if(err.message == undefined) {
+                            this.async.execute(x.query, y, err => {
+                                if (err) {
+                                    if (err.message == undefined) {
                                         err.message = ''
                                     }
-                                    err.message += ` (For SQL "${x.query}" with values (${JSON.stringify(y,(_,value)=> typeof(value) == 'bigint' ? value.toString() : value)}))\n${err.message}`
+                                    err.message += ` (For SQL "${x.query}" with values (${JSON.stringify(y, (_, value) => typeof (value) == 'bigint' ? value.toString() : value)}))\n${err.message}`
                                     rej(err);
                                 } else {
                                     res();
                                 }
                             })
-                        } catch(err) {
-                            err.message += ` (For SQL "${x.query}" with values (${JSON.stringify(y,(_,value)=> typeof(value) == 'bigint' ? value.toString() : value)}))\n${err.message}`
+                        } catch (err) {
+                            err.message += ` (For SQL "${x.query}" with values (${JSON.stringify(y, (_, value) => typeof (value) == 'bigint' ? value.toString() : value)}))\n${err.message}`
                             rej(err)
                         }
                     }))
@@ -199,7 +200,7 @@ export class Connection {
         await doPriority('early');
         await doPriority('normal');
         await doPriority('late');
-        this.statements.forEach(x=>PreparedStatement.clear(x))
+        this.statements.forEach(x => PreparedStatement.clear(x))
         this.early = [];
         this.normal = [];
         this.late = [];
@@ -217,31 +218,31 @@ export class SqlConnection {
     static additional: Connection[] = [];
     static logFile: number;
     static log(db: string, sql: string) {
-        if(BuildArgs.LOG_SQL) {
-            fs.writeSync(this.logFile,`[${db}]: ${sql}\n`);
+        if (BuildArgs.LOG_SQL) {
+            fs.writeSync(this.logFile, `[${db}]: ${sql}\n`);
         }
     }
 
     static auth = new Connection(NodeConfig.DatabaseSettings('auth'));
     static characters = new Connection(NodeConfig.DatabaseSettings('characters', 'default.realm'));
-    static world_dst = new Connection(NodeConfig.DatabaseSettings('world',datasetName));
-    static world_src = new Connection(NodeConfig.DatabaseSettings('world_source',datasetName))
+    static world_dst = new Connection(NodeConfig.DatabaseSettings('world', datasetName));
+    static world_src = new Connection(NodeConfig.DatabaseSettings('world_source', datasetName))
 
-    private static query_cache: {[table: string]: {[query: string]: boolean}} = {}
+    private static query_cache: { [table: string]: { [query: string]: boolean } } = {}
 
     protected static endConnection() {
         Connection.end(this.auth);
         Connection.end(this.characters);
         Connection.end(this.world_src);
         Connection.end(this.world_dst);
-        this.additional.forEach(x=>Connection.end(x));
+        this.additional.forEach(x => Connection.end(x));
         this.additional = [];
     }
 
     static connect() {
         this.endConnection();
-        [this.auth,this.world_dst,this.world_src,this.characters]
-            .forEach((x)=>Connection.connect(x));
+        [this.auth, this.world_dst, this.world_src, this.characters]
+            .forEach((x) => Connection.connect(x));
     }
 
     static getRows<C, Q, T extends SqlRow<C, Q>>(table: SqlTable<C, Q, T>, where: Q, first: boolean) {
@@ -250,7 +251,7 @@ export class SqlConnection {
 
         // Check cache for the query, don't repeat
         let tableCache = this.query_cache[table.name] || (this.query_cache[table.name] = {});
-        if(tableCache[whereLookup]) {
+        if (tableCache[whereLookup]) {
             return [];
         }
         tableCache[whereLookup] = true;
@@ -259,7 +260,7 @@ export class SqlConnection {
         const res = SqlConnection.querySource(sqlStr);
         const rowsOut: T[] = [];
         for (const row of res) {
-            translate(table.name,row,'IN');
+            translate(table.name, row, 'IN');
             const jsrow = SqlTable.createRow(table, row);
             rowsOut.push(jsrow);
         }
@@ -271,6 +272,6 @@ export class SqlConnection {
     }
 
     static allDbs() {
-        return this.additional.concat([this.world_src,this.world_dst,this.auth,this.characters]);
+        return this.additional.concat([this.world_src, this.world_dst, this.auth, this.characters]);
     }
 }
