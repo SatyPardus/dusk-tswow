@@ -78,8 +78,9 @@ export class Connection {
     static connect(connection: Connection) {
         this.end(connection);
         if (NodeConfig.UsePooling) {
-            connection.async = mysql.createPool(Object.assign({}, connection.settings, { enableKeepAlive: true }));
-            connection.sync = mysql.createPool(Object.assign({}, connection.settings, { enableKeepAlive: true }));
+            let s = Object.assign({}, connection.settings, { enableKeepAlive: true })
+            connection.async = mysql.createPool(s);
+            connection.sync = mysql.createPool(s);
         } else {
             connection.async = mysql.createConnection(connection.settings);
             connection.sync = mysql.createConnection(connection.settings);
@@ -95,8 +96,7 @@ export class Connection {
             });
         }
 
-        connection.syncQuery = deasync(connection.sync.query
-            .bind(connection.sync));
+        connection.syncQuery = deasync(connection.sync.query.bind(connection.sync));
     }
 
     protected settings: any;
@@ -171,28 +171,30 @@ export class Connection {
                 })
             }))
 
-            this.statements.forEach(x => {
-                (x[name] as any[][]).forEach(y => {
+            for (let i = 0; i < this.statements.length; i++) {
+                const statement = this.statements[i];
+                for (let j = 0; j < statement[name].length; j++) {
+                    const values = statement[name][j];
                     promises.push(new Promise((res, rej) => {
                         try {
-                            this.async.execute(x.query, y, err => {
+                            this.async.execute(statement.query, values, err => {
                                 if (err) {
                                     if (err.message == undefined) {
                                         err.message = ''
                                     }
-                                    err.message += ` (For SQL "${x.query}" with values (${JSON.stringify(y, (_, value) => typeof (value) == 'bigint' ? value.toString() : value)}))\n${err.message}`
+                                    err.message += ` (For SQL "${statement.query}" with values (${JSON.stringify(values, (_, value) => typeof (value) == 'bigint' ? value.toString() : value)}))\n${err.message}`
                                     rej(err);
                                 } else {
                                     res();
                                 }
                             })
                         } catch (err) {
-                            err.message += ` (For SQL "${x.query}" with values (${JSON.stringify(y, (_, value) => typeof (value) == 'bigint' ? value.toString() : value)}))\n${err.message}`
+                            err.message += ` (For SQL "${statement.query}" with values (${JSON.stringify(values, (_, value) => typeof (value) == 'bigint' ? value.toString() : value)}))\n${err.message}`
                             rej(err)
                         }
                     }))
-                })
-            })
+                }
+            }
 
             return Promise.all(promises);
         }
