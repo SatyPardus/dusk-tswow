@@ -1,46 +1,36 @@
 
 const { parentPort, workerData } = require('worker_threads');
-const mysql = require('mysql2'); 
+const mysql = require('mysql2');
 
 async function runQueries() {
-    let connection = mysql.createConnection(workerData.db);
+    const connection = mysql.createConnection(workerData.db);
     try {
-        for (let i = 0; i < workerData.queryInfo.length; i++) {
-            let queryInfo = workerData.queryInfo[i];
+        for (const queryInfo of workerData.queryInfo) {
+            await new Promise<void>((resolve, reject) => {
+                if (queryInfo.isQuery)
+                    connection.query(queryInfo.query, (err) => cb(err, resolve, reject));
+                else
+                    connection.execute(queryInfo.query, queryInfo.values, (err) => cb(err, resolve, reject));
 
-            if (queryInfo.type === 'query') {
-                await new Promise<void>((resolve, reject) => {
-                    connection.query(queryInfo.query, (err) => {
-                        if (err) {
-                            console.log(err);
-                            parentPort.postMessage({ err: err });
-                            reject(err);
-                        } else {
-                            resolve();
-                        }
-                    });
-                });
-            } else if (queryInfo.type === 'exec') {
-                await new Promise<void>((resolve, reject) => {
-                    connection.execute(queryInfo.query, queryInfo.values, (err) => {
-                        if (err) {
-                            console.log(err);
-                            parentPort.postMessage({ err: err });
-                            reject(err);
-                        } else {
-                            resolve();
-                        }
-                    });
-                });
-            }
+            });
         }
     } catch (e) {
-        console.log(e);
+        console.error(e);
         parentPort.postMessage({ err: e });
     } finally {
         connection.end();
         parentPort.postMessage({ final: true });
     }
 }
+
+function cb(err: any, resolve, reject) {
+    if (err) {
+        console.error(err);
+        parentPort.postMessage({ err });
+        reject(err);
+    } else {
+        resolve();
+    }
+};
 
 runQueries();

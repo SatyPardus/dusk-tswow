@@ -160,14 +160,14 @@ export class Connection {
 
             let count = 0;
             for (let i = 0; i < this[name].length; i++) {
-                queries[count % this.workerCount].push({ type: 'query', query: this[name][i] });
+                queries[count % this.workerCount].push({ isQuery: true, query: this[name][i] });
                 count++
             }
             for (let i = 0; i < this.statements.length; i++) {
                 const statement = this.statements[i];
                 for (let j = 0; j < statement[name].length; j++) {
                     const values = statement[name][j];
-                    queries[count % this.workerCount].push({ type: 'exec', query: statement.query, values: values });
+                    queries[count % this.workerCount].push({ isQuery: false, query: statement.query, values: values });
                     count++
                 }
             }
