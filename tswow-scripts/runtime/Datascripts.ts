@@ -56,7 +56,8 @@ const data_tsconfig =
     "allowJs": false,
     "forceConsistentCasingInFileNames": true,
     "experimentalDecorators": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "noErrorTruncation": true
   },
   "exclude":["**/build/**","**/tswow/wotlkdata/**"]
 };
@@ -372,21 +373,24 @@ export class Datascripts {
         )
 
         try {
-            wsys.exec(
-                    `${NodeExecutable} -r source-map-support/register`
+            console.log(wsys.exec(
+                `${NodeExecutable}   --trace-warnings -r source-map-support/register`
                 + ` ${ipaths.node_modules.wow.data.index.get()}`
                 + ` --ipaths=./`
                 + ` --dataset=${dataset.path.get()}`
                 + ` --datasetName=${dataset.fullName}`
                 + ` --clientPatch=${dataset.client.path.Data.devPatch}`
                 + ` ${args.join(' ')}`
-                // Please don't pass these two manually
-                + ` ${writesServer?'--__writes-server':''}`
-                + ` ${writesClient?'--__writes-client':''}`
-                , 'inherit'
-            )
+                + ` ${writesServer ? '--__writes-server' : ''}`
+                + ` ${writesClient ? '--__writes-client' : ''}`
+                
+                , 'pipe'
+            ));
+            
         } catch(err) {
             term.error('datascripts',`Failed to build datascripts, see error message above`);
+            term.error('datascripts',err)
+            console.log(err)
             return
         }
 

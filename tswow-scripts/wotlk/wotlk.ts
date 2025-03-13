@@ -18,6 +18,7 @@ import { finish, luaxml, patch, read, setup, sort, write } from "../data";
 import { BuildArgs, EmulatorCore } from "../data/Settings";
 import { DBC as _DBC, DBCLoader } from "./DBCFiles";
 import { CDBC as _CDBC, CDBCLoader } from "./CDBCFiles";
+import { SDBC as _SDBC, SDBCLoader } from "./SDBCFiles";
 import { LUAXML as _LUAXML } from "./luaxml/LUAXML";
 import { SQL as _SQL } from "./SQLFiles";
 import { AchievementRegistry } from "./std/Achievement/Achievement";
@@ -218,10 +219,12 @@ export const std = {
     isReadOnly: BuildArgs.READ_ONLY,
     DBC: _DBC,
     CDBC: _CDBC,
+    SDBC: _SDBC,
     BattlegroundStats: BattlegroundStatInfoRegistry,
     /** Used to load external dbc files for conversion purposes. */
     DBCLoader: DBCLoader,
     CDBCLoader: CDBCLoader,
+    SDBCLoader: SDBCLoader,
     SQL: _SQL,
     LUAXML: _LUAXML,
     Events: {
@@ -241,4 +244,5 @@ export const wotlk = std;
 export const SQL = _SQL;
 export const DBC = _DBC;
 export const CDBC = _CDBC;
+export const SDBC = _SDBC;
 export const LUAXML = _LUAXML;

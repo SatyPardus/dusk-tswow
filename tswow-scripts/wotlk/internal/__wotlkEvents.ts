@@ -24,65 +24,79 @@ import { CDBCFiles } from '../CDBCFiles';
 import { SQLTables } from '../SQLFiles';
 import * as fs from 'fs';
 import { CDBCGenerator } from '../cdbc/CDBCGenerator';
+import { SDBCGenerator } from '../sdbc/SDBCGenerator';
+import { SDBCFiles } from '../SDBCFiles';
+import { CDBCFile } from '../cdbc/CDBCFile';
+import { SDBCFile } from '../sdbc/SDBCFile';
 
 function saveDbc() {
     for (const file of DBCFiles) {
         saveDBCFile(file, '.dbc')
     }
     for (const file of CDBCFiles) {
-        if(!fs.existsSync(file.getPath()))
+        if (!fs.existsSync(file.getPath()))
             new CDBCGenerator(file.getDefaultRow()).generate(file.getPath());
         file.fileWork()
         saveDBCFile(file, '.cdbc')
     }
+    for (const file of SDBCFiles) {
+        if (!fs.existsSync(file.getPath())) {
+            new SDBCGenerator(file.getDefaultRows()).generate(file.getPath());
+        }
+        file.fileWork()
+        saveDBCFile(file, '.sdbc')
+    }
 }
 
-function saveDBCFile(file, ending)
-{
+function saveDBCFile(file, ending) {
     const srcpath = dataset.dbc_source.join(file.name + ending);
 
-        // if we skip the server, we should write dbcs to client directly
-        const outPaths: WFile[] = [];
-        if(BuildArgs.WRITE_CLIENT) {
-            outPaths.push(BuildArgs.CLIENT_PATCH_DIR.join('DBFilesClient',file.name+ending).toFile())
-        }
+    // if we skip the server, we should write dbcs to client directly
+    const outPaths: WFile[] = [];
+    if (BuildArgs.WRITE_CLIENT) {
+        outPaths.push(BuildArgs.CLIENT_PATCH_DIR.join('DBFilesClient', file.name + ending).toFile())
+    }
 
-        if(BuildArgs.WRITE_SERVER) {
-            outPaths.push(dataset.dbc.join(file.name+ending).toFile())
-        }
+    if (BuildArgs.WRITE_SERVER) {
+        outPaths.push(dataset.dbc.join(file.name + ending).toFile())
+    }
 
-        if(file.isLoaded()) {
-            outPaths[0].writeBuffer(DBCFile.getBuffer(file).write());
-        } else {
-            srcpath.copy(outPaths[0]);
-        }
+    if (file.isLoaded()) {
+        outPaths[0].writeBuffer(DBCFile.getBuffer(file).write());
+    } else {
+        srcpath.copy(outPaths[0]);
+    }
 
-        if(outPaths.length > 1) {
-            outPaths.slice(1).forEach(x=>{
-                outPaths[0].copy(outPaths[1])
-            })
-        }
+    if (outPaths.length > 1) {
+        outPaths.slice(1).forEach(x => {
+            outPaths[0].copy(outPaths[1])
+        })
+    }
 }
 
 async function saveSQL() {
-    SQLTables.map(x=>{
-        SqlTable.writeSQL(x);
-    })
-    await Promise.all(SqlConnection.allDbs().map(x=>x.apply()));
+    SQLTables.map(x => { SqlTable.writeSQL(x); })
+    await Promise.all(SqlConnection.allDbs().map(x => x.apply()));
 }
 
 export async function __internal_wotlk_save() {
-    if(!BuildArgs.READ_ONLY) {
+    if (!BuildArgs.READ_ONLY) {
         saveDbc();
     }
 
-    if(BuildArgs.WRITE_SERVER) {
+    if (BuildArgs.WRITE_SERVER) {
         await saveSQL();
     }
 }
 
 export function __internal_wotlk_applyDeletes() {
-    for(const file of DBCFiles) {
+    for (const file of DBCFiles) {
         DBCFile.getBuffer(file).applyDeletes();
+    }
+    for (const file of CDBCFiles) {
+        CDBCFile.getBuffer(file).applyDeletes();
+    }
+    for (const file of SDBCFiles) {
+        SDBCFile.getBuffer(file).applyDeletes();
     }
 }
