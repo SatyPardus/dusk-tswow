@@ -9,10 +9,28 @@
 
 void TooltipExtensions::Apply() {
     SpellTooltipVariableExtension();
-    SpellTooltipRuneCostExtension();
-    SpellTooltipPowerCostExtension();
-    SpellTooltipCooldownExtension();
-    SpellTooltipRemainingCooldownExtension();
+    //SpellTooltipRuneCostExtension();
+    //SpellTooltipPowerCostExtension();
+    //SpellTooltipCooldownExtension();
+    //SpellTooltipRemainingCooldownExtension();
+    PatchSetSpell();
+}
+
+void TooltipExtensions::PatchSetSpell() {
+    uint8_t patchBytes[] = {
+        0x55, 0x89, 0xE5, 0x8B, 0x5D, 0x40, 0x8B, 0x45, 0x3C, 0x53, 0x50, 0x8B, 0x55, 0x38, 0x8B, 0x5D,
+        0x30, 0x8B, 0x45, 0x2C, 0x52, 0x53, 0x50, 0x8B, 0x55, 0x28, 0x8B, 0x5D, 0x24, 0x8B, 0x45, 0x20,
+        0x52, 0x53, 0x50, 0x8B, 0x55, 0x1C, 0x8B, 0x5D, 0x18, 0x8B, 0x45, 0x14, 0x52, 0x53, 0x50, 0x8B,
+        0x55, 0x10, 0x8B, 0x5D, 0x0C, 0x8B, 0x45, 0x08, 0x52, 0x53, 0x50, 0x51, 0xE8, 0x00, 0x00, 0x00,
+        0x00, 0x89, 0xEC, 0x5D, 0xC2, 0x3C, 0x00
+    };
+
+    Util::OverwriteBytesAtAddress(0x6238A0, patchBytes, sizeof(patchBytes));
+    Util::OverwriteUInt32AtAddress(0x6238DD, Util::CalculateAddress(reinterpret_cast<uint32_t>(&SetSpellExtension), 0x6238E1));
+}
+
+void TooltipExtensions::SetSpellExtension(CGTooltip* tooltip, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5, uint32_t a6, uint32_t a7, uint32_t a8, uint32_t a9, uint32_t a10, uint32_t a11, uint32_t a12, uint32_t a14, uint32_t a15, uint32_t a16) {
+
 }
 
 void TooltipExtensions::SpellTooltipVariableExtension() {
@@ -351,7 +369,7 @@ void TooltipExtensions::SetSpellRemainingCooldownTooltip(char* dest, SpellRow* s
         recoveryTime = currentCooldown;
 
     if (recoveryTime) {
-        CGTooltip::GetDurationString(dest, 128, recoveryTime, "ITEM_COOLDOWN_TIME", 0, 1, 0);
+        CGTooltip_C::GetDurationString(dest, 128, recoveryTime, "ITEM_COOLDOWN_TIME", 0, 1, 0);
         sub_61FEC0(_this, dest, 0, ptr, ptr, 0);
     }
 }

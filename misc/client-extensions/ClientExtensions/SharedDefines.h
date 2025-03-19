@@ -242,6 +242,10 @@ struct CGPlayer {
     uint32_t playerClass[1024];
 };
 
+struct CGTooltip {
+
+};
+
 struct ChrClassesRow {
     uint32_t m_ID;
     uint32_t m_DisplayPower;

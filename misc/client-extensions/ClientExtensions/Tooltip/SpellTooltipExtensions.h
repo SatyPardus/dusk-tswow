@@ -5,7 +5,7 @@ namespace CFormula {
     CLIENT_FUNCTION(GetVariableValue, 0x5782D0, __thiscall, int, (void*, uint32_t, uint32_t, SpellRow*, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t))
 }
 
-namespace CGTooltip {
+namespace CGTooltip_C {
     CLIENT_FUNCTION(GetDurationString, 0x61A9E0, __cdecl, void, (char*, uint32_t, uint64_t, char*, uint32_t, uint32_t, uint32_t))
 }
 
@@ -22,6 +22,9 @@ private:
     static void SpellTooltipPowerCostExtension();
     static void SpellTooltipCooldownExtension();
     static void SpellTooltipRemainingCooldownExtension();
+
+    static void PatchSetSpell();
+    static void SetSpellExtension(CGTooltip* tooltip, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5, uint32_t a6, uint32_t a7, uint32_t a8, uint32_t a9, uint32_t a10, uint32_t a11, uint32_t a12, uint32_t a14, uint32_t a15, uint32_t a16);
     
     static void AppendRuneCost(char* runeCostKey, int runeCount, char* buff, char* destBuffer);
     static int __fastcall GetVariableValueEx(void* _this, uint32_t edx, uint32_t spellVariable, uint32_t a3, SpellRow* spell, uint32_t a5, uint32_t a6, uint32_t a7, uint32_t a8, uint32_t a9);
