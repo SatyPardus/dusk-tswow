@@ -65,9 +65,7 @@ function saveDBCFile(file, ending)
 }
 
 async function saveSQL() {
-    SQLTables.map(x=>{
-        SqlTable.writeSQL(x);
-    })
+    SQLTables.forEach(SqlTable.writeSQL);
     await Promise.all(SqlConnection.allDbs().map(x=>x.apply()));
 }
 

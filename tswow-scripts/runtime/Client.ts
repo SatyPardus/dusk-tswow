@@ -133,7 +133,7 @@ export class Client {
             term.log('client',`Starting client for dataset ${this.dataset.name}`)
             let process = new Process('client').showOutput(false);
             if(isWindows()) {
-                process.start(this.path.wow_exe.get())
+                process.start(this.path.wow_exe.get(), ['-console'])
             } else {
                 process.start('wine',[this.path.wow_exe.get()])
             }

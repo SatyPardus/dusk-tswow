@@ -32,20 +32,11 @@ export type Relation<T extends Primitive> = RelationBase | T;
  * @param value Value to be checked
  * @param relation Relation to be checked against
  */
-export function inMemoryRelation(value: any, relation: Relation<any>) {
-    // Hackaround to make objects accept on any of its (even nested) values
-    if (typeof(value) === 'object') {
-        for (const key in value) {
-            if (inMemoryRelation(value[key], relation)) { return true; }
-        }
-        return false;
+export function inMemoryRelation(value: any, relation: Relation<any>): boolean {
+    if (typeof value === 'object' && value !== null) {
+        return Object.values(value).some(v => inMemoryRelation(v, relation));
     }
-
-    if (isNonPrimitive(relation)) {
-        return relation.inMemory(value);
-    } else {
-        return value === relation;
-    }
+    return isNonPrimitive(relation) ? relation.inMemory(value) : value === relation;
 }
 
 /**
@@ -106,12 +97,13 @@ abstract class NumericRelation extends ValueRelationBase<number> {
             `${key} ${this.sign()} ${this.value}`;
     }
 
-    inMemory(value: any) {
-        if (typeof(value) !== 'number') { return false; }
-        return this.precision >= 0 ?
-            this.match(parseFloat(this.value.toFixed(this.precision)),
-                parseFloat(value.toFixed(this.precision))) :
-            this.match(this.value, value);
+    inMemory(value: any): boolean {
+        if (typeof value !== 'number') return false;
+
+        const valueFixed = this.precision >= 0 ? parseFloat(value.toFixed(this.precision)) : value;
+        const comparisonValue = this.precision >= 0 ? parseFloat(this.value.toFixed(this.precision)) : this.value;
+
+        return this.match(comparisonValue, valueFixed);
     }
 
     protected abstract match(thisvalue: number, value: number): boolean;
