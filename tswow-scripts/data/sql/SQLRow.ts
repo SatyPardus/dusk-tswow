@@ -84,24 +84,19 @@ export abstract class SqlRow<C, Q> extends Row<C, Q> {
 
     protected writePrimaryKeys(keys: any[]) {
         this._dirty = true;
-        Row.primaryKeyFields(this).forEach((x: any, i: number) => {
-            this.obj[x] = keys[i];
+        Row.primaryKeyFields(this).forEach((key, i) => {
+            this.obj[key] = keys[i];
         });
     }
 
-    // TODO: This doesn't work, don't know why.
-    objectify(options?: ObjectifyOptions) {
-        // ???????
-        return Object.assign({}, this.obj);
+    // TODO: test if this is better
+    objectify(): { [key: string]: any } {
+        return { ...this.obj }; // Efficient object cloning
     }
 
-    protected _generatePreparedDeleteStatement() {
-        const pkFields: string[] = Row.primaryKeyFields(this);
-        const text = `DELETE FROM ${this.table.name} WHERE `
-        + `${pkFields.map((x)=>{
-            return `${x} = ?`
-        }).join(' AND ')};`
-        return text;
+    protected _generatePreparedDeleteStatement(): string {
+        const pkFields = Row.primaryKeyFields(this);
+        return `DELETE FROM ${this.table.name} WHERE ${pkFields.map(x => `${x} = ?`).join(' AND ')};`;
     }
 
     protected _generatePreparedStatement() {
@@ -112,7 +107,7 @@ export abstract class SqlRow<C, Q> extends Row<C, Q> {
     }
 
     protected _getPreparedStatements() {
-        return Object.values(this.objectify())
+        return Object.values(this.obj)
     }
 
     protected _getPreparedDeleteValues() {
@@ -140,22 +135,13 @@ export abstract class SqlRow<C, Q> extends Row<C, Q> {
         translate(this.table.name,obj,'OUT')
         for(let key in obj) {
             if(typeof(obj[key]) == 'string') {
-                obj[key] = obj[key].split('\\').join('\\\\').split('"').join('\\"')
+                obj[key] = obj[key].replace(/\\/g, '\\\\').replace(/"/g, '\\"');
             }
         }
-        if(this.isDeleted()) {
-            const pkFields: string[] = Row.primaryKeyFields(this);
-            const text = `DELETE FROM ${this.table.name} WHERE `
-            + `${pkFields.map((x)=>{
-                const value = obj[x];
-                return `${x} = ${typeof(value)=='string'?`"${value}"`:value}`
-            }).join(' AND ')};`
-            return text;
-        }
-
-        return `REPLACE INTO ${this.table.name} ` +
-        `(${Object.keys(obj).map(x=>`\`${x}\``).join(',')}) ` +
-        `VALUES (${Object.values(obj).map(x => x === null ? 'null' : typeof(x) === 'string' ? `"${x}"` : x)})`;
+        const isDeleted = this.isDeleted();
+        const pkFields = Row.primaryKeyFields(this);
+        return isDeleted ? `DELETE FROM ${this.table.name} WHERE ${pkFields.map(x => `${x} = ${typeof obj[x] === 'string' ? `"${obj[x]}"` : obj[x]}`).join(' AND ')};`
+            : `REPLACE INTO ${this.table.name} (${Object.keys(obj).map(x => `\`${x}\``).join(', ')}) VALUES (${Object.values(obj).map(x => (x === null ? 'NULL' : typeof x === 'string' ? `"${x}"` : x)).join(', ')});`;
     }
 
     protected cloneInternal(keys: any[], c?: C) {
