@@ -309,7 +309,7 @@ export class Module {
         }
 
         if(!process.argv.includes('nowatch') && !process.argv.includes('nowatch-strict') && !process.argv.includes('server-mode')) {
-            chokidar.watch(ipaths.modules.get(),{
+            const watcher = chokidar.watch(ipaths.modules.get(),{
                 ignored: [
                       /build$/
                     , /Buildings$/
@@ -327,8 +327,8 @@ export class Module {
                     , /assets$/
                     , /(^|[\/\\])\../
                 ]
-            })
-            .addListener('addDir',_dir=>{
+            });
+            (watcher as any).addListener('addDir',_dir=>{
                 const dir = new WDirectory(_dir)
                 if(dir.dirname().basename().get() == 'modules') {
                     return;
