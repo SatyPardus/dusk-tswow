@@ -119,35 +119,27 @@ export class SqlTable<C, Q, R extends SqlRow<C, Q>> extends Table<C, Q, R> {
         return sqlfile + `--${this.name}\n` + dirtyRows.map(x => SqlRow.getSql(x)).join('\n') + '\n';
     }
 
-    static writeSQL(table: SqlTable<any,any,any>) {
-        // Very stupid
-        let dummyRow: SqlRow<any,any>
-        for(let row in table.cachedRows) {
-            dummyRow = table.cachedRows[row];
-            break;
-        }
-        if(!dummyRow) {
+    static writeSQL(table: SqlTable<any, any, any>) { 
+        if (!table.cachedRows || Object.keys(table.cachedRows).length === 0) 
             return;
-        }
 
+        const dummyRow = Object.values(table.cachedRows)[0];
+        if (!dummyRow) return;
         const normalQuery = SqlRow.generatePreparedStatement(dummyRow);
         const deleteQuery = SqlRow.generatePreparedDeleteStatement(dummyRow);
+        const normalStatement = SqlConnection.world_dst.prepare(normalQuery);
+        const deleteStatement = SqlConnection.world_dst.prepare(deleteQuery);
 
-        let normalStatement = SqlConnection.world_dst.prepare(normalQuery)
-        let deleteStatement = SqlConnection.world_dst.prepare(deleteQuery)
-
-        SqlConnection.world_dst.prepare(table.rowCreator(table,{}))
-
-        let values = table.cachedValues.filter(SqlRow.isDirty)
-
-        values.forEach((x: SqlRow<any,any>)=>{
-                if(x.isDeleted()) {
-                    deleteStatement.writeNormal(SqlRow.getPreparedDeleteStatement(x))
-                } else {
-                    normalStatement.writeNormal(SqlRow.getPreparedStatement(x))
-                }
-                //SqlConnection.world_dst.write(SqlRow.getSql(x))
-            });
-        table.cachedRows = {};
+        SqlConnection.world_dst.prepare(table.rowCreator(table, {}));
+        for (const row of table.cachedValues) {
+            if (!SqlRow.isDirty(row)) continue; // Skip non-dirty rows early
+            if (row.isDeleted()) {
+                deleteStatement.writeNormal(SqlRow.getPreparedDeleteStatement(row));
+            } else {
+                normalStatement.writeNormal(SqlRow.getPreparedStatement(row));
+            }
+        }
+    
+        table.cachedRows = {}; // Clear cache after processing
     }
 }
