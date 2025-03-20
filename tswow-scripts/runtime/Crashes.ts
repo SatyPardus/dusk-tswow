@@ -1,5 +1,5 @@
 import * as chokidar from "chokidar";
-import * as fs from "fs";
+import fs from "fs";
 import { WFile } from "../util/FileTree";
 import { ipaths } from "../util/Paths";
 import { term } from "../util/Terminal";
@@ -12,7 +12,7 @@ export class Crashes {
         }
 
         term.debug('misc', `Initializing crashlog handler`)
-        chokidar.watch(ipaths.modules.abs().get(),{
+        const watcher = chokidar.watch(ipaths.modules.abs().get(),{
             ignored: [
                 /build$/
               , /Buildings$/
@@ -30,8 +30,10 @@ export class Crashes {
               , /luaxml$/
               , /luaxml_source/
               , /(^|[\/\\])\../
-          ]
-        }).on('add',sfile=>{
+          ],
+          persistent:true
+        });
+        (watcher as any).on('add',sfile=>{
             let file = new WFile(sfile);
             if(file.basename(1).get() !== 'Crashes') return;
             const ctime = file.ctime();
