@@ -32,7 +32,7 @@ export class SqlTable<C, Q, R extends SqlRow<C, Q>> extends Table<C, Q, R> {
     }
 
     static cachedRowCount(table: SqlTable<any, any, any>) {
-        return Object.values(table.cachedRows).length;
+        return Object.keys(table.cachedRows).length;
     }
 
     static cachedValues(table: SqlTable<any, any, any>)  {
@@ -56,10 +56,7 @@ export class SqlTable<C, Q, R extends SqlRow<C, Q>> extends Table<C, Q, R> {
         if (this.cachedFirst) {
             return this.cachedFirst;
         }
-        this.cachedFirst = this.filterInt({} as any, true)[0];
-        if (!this.cachedFirst) {
-            this.cachedFirst = this.rowCreator(this, {});
-        }
+        this.cachedFirst = this.filterInt({} as any, true)[0] ?? this.rowCreator(this, {});
         return this.cachedFirst;
     }
 
@@ -69,7 +66,7 @@ export class SqlTable<C, Q, R extends SqlRow<C, Q>> extends Table<C, Q, R> {
 
     private isPkLookup(where: Q): string {
         let fields: string[] = Row.primaryKeyFields(this.rowCreator(this,{}));
-        if(fields.length != Object.entries(where).length) {
+        if(fields.length != Object.keys(where).length) {
             return undefined;
         }
         for(let field of fields) {
@@ -105,7 +102,7 @@ export class SqlTable<C, Q, R extends SqlRow<C, Q>> extends Table<C, Q, R> {
         const dbMatches = SqlConnection.getRows(this, where, firstOnly)
             .filter(x => !this.cachedRows[Row.fullKey(x)]);
         dbMatches.forEach(x => this.cachedRows[Row.fullKey(x)] = x);
-        return cacheMatches.concat(dbMatches);
+        return [...cacheMatches, ...dbMatches];
     }
 
     addRow(row: R) {
@@ -116,7 +113,7 @@ export class SqlTable<C, Q, R extends SqlRow<C, Q>> extends Table<C, Q, R> {
     protected writeToFile(sqlfile: string): string {
         const dirtyRows = this.cachedValues.filter(SqlRow.isDirty);
         if (dirtyRows.length === 0) { return sqlfile; }
-        return sqlfile + `--${this.name}\n` + dirtyRows.map(x => SqlRow.getSql(x)).join('\n') + '\n';
+        return `${sqlfile}--${this.name}\n${dirtyRows.map(SqlRow.getSql).join('\n')}\n`;
     }
 
     static writeSQL(table: SqlTable<any, any, any>) { 
