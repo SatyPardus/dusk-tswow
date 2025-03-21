@@ -80,9 +80,13 @@ enum SpellFamilyNames : uint32_t {
 };
 
 enum SpellEffect : uint32_t {
+    SPELL_EFFECT_CREATE_ITEM                    = 24,
     SPELL_EFFECT_TRADE_SKILL                    = 47,
+    SPELL_EFFECT_ENCHANT_ITEM                   = 53,
+    SPELL_EFFECT_CREATE_RANDOM_ITEM             = 59,
     SPELL_EFFECT_ATTACK                         = 78,
     SPELL_EFFECT_TITAN_GRIP                     = 155,
+    SPELL_EFFECT_CREATE_ITEM_2                  = 157,
 };
 
 enum SpellAttr0 : uint32_t {
@@ -116,7 +120,33 @@ enum SpellAttr0Custom : uint32_t {
     SPELL_ATTR0_CU_LOW_CAST_TIME_DONT_INTERRUPT = 0x00000100,   // If cast time <= 250ms, does not interrupt
 };
 
+static uint32_t colorTable[] = {
+    0xFFFFFFFF,         //
+    0xFFFFD200,         //
+    0xFF808080,         //
+};
+
 static uint32_t dummy = 0;
+
+static char* powerString[] = {
+    "MANA_COST",
+    "RAGE_COST",
+    "FOCUS_COST",
+    "ENERGY_COST",
+    "HAPPINESS_COST",
+    "RUNE_COST",
+    "RUNIC_POWER_COST"
+};
+
+static uint32_t powerMult[] = {
+    1,
+    10,
+    1,
+    1,
+    1000,
+    1,
+    10
+};
 
 static char* sConnectorPlus = " + ";
 static char* sPluralS = "s";
@@ -243,7 +273,7 @@ struct CGPlayer {
 };
 
 struct CGTooltip {
-
+    uint32_t padding0x00[256];
 };
 
 struct ChrClassesRow {
@@ -521,12 +551,18 @@ namespace SpellParser {
 
 namespace Spell_C {
     CLIENT_FUNCTION(SpellFailed, 0x808200, __cdecl, void, (void*, SpellRow*, uint32_t, int32_t, int32_t, uint32_t))
+    CLIENT_FUNCTION(GetPowerCost, 0x8012F0, __cdecl, int32_t, (SpellRow*, CGUnit*))
+    CLIENT_FUNCTION(GetPowerCostPerSecond, 0x7FF100, __cdecl, int32_t, (SpellRow*, CGUnit*))
 }
 
 namespace SpellRec_C {
     CLIENT_FUNCTION(GetLevel, 0x7FF070, __cdecl, uint32_t, (SpellRow*, uint32_t, uint32_t))
     CLIENT_FUNCTION(GetCastTime, 0x7FF180, __cdecl, uint32_t, (SpellRow*, uint32_t, uint32_t, uint32_t))
     CLIENT_FUNCTION(ModifySpellValueInt, 0x7FDB50, __cdecl, void, (SpellRow*, uint32_t*, uint32_t))
+}
+
+namespace SpellTable {
+    CLIENT_FUNCTION(LookupAbility, 0x812410, __cdecl, SkillLineAbilityRow*, (uint32_t, uint32_t, uint32_t))
 }
 
 namespace SErr {

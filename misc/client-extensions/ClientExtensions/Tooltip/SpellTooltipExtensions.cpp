@@ -29,8 +29,140 @@ void TooltipExtensions::PatchSetSpell() {
     Util::OverwriteUInt32AtAddress(0x6238DD, Util::CalculateAddress(reinterpret_cast<uint32_t>(&SetSpellExtension), 0x6238E1));
 }
 
-void TooltipExtensions::SetSpellExtension(CGTooltip* tooltip, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5, uint32_t a6, uint32_t a7, uint32_t a8, uint32_t a9, uint32_t a10, uint32_t a11, uint32_t a12, uint32_t a14, uint32_t a15, uint32_t a16) {
+void TooltipExtensions::SetSpellExtension(CGTooltip* tooltip, uint32_t spellID, uint32_t a3, uint32_t a4, uint32_t a5, uint32_t a6, uint32_t a7, uint32_t a8, uint32_t a9, uint32_t a10, uint32_t a11, uint32_t a12, uint32_t a14, uint32_t a15, uint32_t a16) {
+    CGPlayer* activePlayer = reinterpret_cast<CGPlayer*>(ClntObjMgr::ObjectPtr(ClntObjMgr::GetActivePlayer(), TYPEMASK_PLAYER));
+    SpellRow spellRow = { 0 };
+    CGUnit* unit = 0;
+    char v159[128];
+    char Format[128];
 
+    if (!a11)
+        CGTooltip_C::ClearTooltip(tooltip);
+
+    if (!activePlayer) {
+        CSimpleFrame::Hide(reinterpret_cast<void*>(tooltip));
+        return;
+    }
+
+    if (!ClientDB::GetLocalizedRow(reinterpret_cast<void*>(0xAD49D0), spellID, &spellRow)) {
+        if (!a11)
+            CSimpleFrame::Hide(reinterpret_cast<void*>(tooltip));
+        return;
+    }
+
+    if (!a11) {
+        tooltip->padding0x00[217] = spellID;
+        tooltip->padding0x00[242] = 0;
+    }
+
+    if (a7)
+        unit = reinterpret_cast<CGUnit*>(ClntObjMgr::ObjectPtr(*reinterpret_cast<uint64_t*>(0xC24220), TYPEMASK_UNIT));
+    else if (a5)
+        unit = reinterpret_cast<CGUnit*>(ClntObjMgr::ObjectPtr(CGPetInfo_C::GetPet(0), TYPEMASK_UNIT));
+    else
+        unit = reinterpret_cast<CGUnit*>(activePlayer);
+
+    uint32_t v21 = 0;
+    uint32_t v167 = 0;
+    uint32_t v162 = 0;
+
+    if (spellRow.m_attributes & SPELL_ATTR0_TRADESPELL) {
+        while (true) {
+            if (spellRow.m_effect[v21] == SPELL_EFFECT_ENCHANT_ITEM)
+                break;
+
+            if (spellRow.m_effect[v21] == SPELL_EFFECT_CREATE_ITEM || spellRow.m_effect[v21] == SPELL_EFFECT_CREATE_RANDOM_ITEM || spellRow.m_effect[v21] == SPELL_EFFECT_CREATE_ITEM_2) {
+                v167 = 1;
+                v162 = 1;
+            }
+
+            if (++v21 >= 3)
+                goto LABEL_25;
+        }
+        v167 = 1;
+    }
+LABEL_25:
+    if (a9 && a11) {
+        SStr::Printf(v159, 128, "\n%s", FrameScript::GetText("TOOLTIP_TALENT_NEXT_RANK", -1, 0));
+        CGTooltip_C::AddLine(tooltip, v159, 0, &colorTable[0], &colorTable[0], 0);
+    }
+    else if (v167) {
+        SkillLineAbilityRow* v24 = SpellTable::LookupAbility(activePlayer->unitBase.unitData->unitBytes0.raceID, activePlayer->unitBase.unitData->unitBytes0.classID, spellID);
+
+        if (v24) {
+            SkillLineRow* v25 = reinterpret_cast<SkillLineRow*>(ClientDB::GetRow(reinterpret_cast<void*>(0xAD45F8), v24->m_skillLine));
+
+            if (v25) {
+                SStr::Printf(v159, 128, "%s: %s", v25->m_displayName_lang);
+                CGTooltip_C::AddLine(tooltip, v159, 0, &colorTable[1], &colorTable[1], 0);
+            }
+        }
+    }
+    else {
+        char* v27 = 0;
+
+        if (a3 || a6)
+            v27 = spellRow.m_nameSubtext_lang;
+
+        CGTooltip_C::AddLine(tooltip, spellRow.m_name_lang, v27, &colorTable[0], &colorTable[2], 0);
+    }
+
+    uint32_t v138 = 0;
+
+    if (a9 && !a11) {
+        if (a15 > 0) {
+            SStr::Printf(v159, 128, FrameScript::GetText("TOOLTIP_TALENT_RANK", -1, 0), a14 + 1);
+            CGTooltip_C::AddLine(tooltip, v159, 0, &colorTable[0], &colorTable[0], 0);
+        }
+        if (!a14)
+            v138 = CGTooltip_C::AddTalentPrereqs(tooltip, a9, a10, a7, a5, a12);
+    }
+
+    *v159 = 0;
+
+    PowerDisplayRow* v29 = reinterpret_cast<PowerDisplayRow*>(ClientDB::GetRow(reinterpret_cast<void*>(0xAD43B8), spellRow.m_powerDisplayID));
+    int32_t powerCost = Spell_C::GetPowerCost(&spellRow, unit);
+
+    if (!a3) {
+        int32_t powerCostPerSec = Spell_C::GetPowerCostPerSecond(&spellRow, unit);
+        int32_t powerCostFin = spellRow.m_powerType > 6 ? powerCost : powerCost / powerMult[spellRow.m_powerType];
+        int32_t powerCostPerSecFin = spellRow.m_powerType > 6 ? powerCostPerSec : powerCostPerSec / powerMult[spellRow.m_powerType];
+        char* powerCostStr;
+
+        if (spellRow.m_powerType > 6)
+            powerCostStr = "HEALTH_COST";
+        else
+            powerCostStr = powerString[spellRow.m_powerType];
+
+        if (spellRow.m_powerType != 5) {
+            if (powerCostFin) {
+                if (powerCostPerSecFin <= 0) {
+                    if (v29)
+                        SStr::Printf(v159, 128, FrameScript::GetText("POWER_DISPLAY_COST", -1, 0), powerCostFin, FrameScript::GetText(v29->m_globalStringBaseTag, -1, 0));
+                    else
+                        SStr::Printf(v159, 128, FrameScript::GetText(powerCostStr, -1, 0), powerCostFin);
+                }
+                goto LABEL_76;
+            }
+            else if (powerCostPerSecFin <= 0)
+                goto LABEL_76;
+            if (v29)
+                SStr::Printf(v159, 128, FrameScript::GetText("POWER_DISPLAY_COST_PER_TIME", -1, 0), powerCostFin, FrameScript::GetText(v29->m_globalStringBaseTag, -1, 0));
+            else
+            {
+                SStr::Printf(Format, 128, "%s_PER_TIME", powerCostStr);
+                SStr::Printf(v159, 128, FrameScript::GetText(Format, -1, 0), powerCostFin, powerCostPerSecFin);
+            }
+            goto LABEL_76;
+        }
+        SpellRuneCostRow* v35 = reinterpret_cast<SpellRuneCostRow*>(ClientDB::GetRow(reinterpret_cast<void*>(0xAD49C4), spellRow.m_runeCostID));
+        if (v35) {
+            if (v35->m_blood)
+                ;
+        }
+    }
+LABEL_76:
+    float v175 = 0.f;
 }
 
 void TooltipExtensions::SpellTooltipVariableExtension() {

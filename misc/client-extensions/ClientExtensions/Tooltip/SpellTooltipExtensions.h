@@ -6,7 +6,14 @@ namespace CFormula {
 }
 
 namespace CGTooltip_C {
+    CLIENT_FUNCTION(AddLine, 0x61FEC0, __thiscall, void, (CGTooltip*, char*, char*, uint32_t*, uint32_t*, uint32_t))
+    CLIENT_FUNCTION(AddTalentPrereqs, 0x6224F0, __thiscall, uint32_t, (CGTooltip*, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t))
+    CLIENT_FUNCTION(ClearTooltip, 0x61C620, __thiscall, void, (CGTooltip*))
     CLIENT_FUNCTION(GetDurationString, 0x61A9E0, __cdecl, void, (char*, uint32_t, uint64_t, char*, uint32_t, uint32_t, uint32_t))
+}
+
+namespace CSimpleFrame {
+    CLIENT_FUNCTION(Hide, 0x48F620, __thiscall, void, (void*))
 }
 
 class TooltipExtensions {
@@ -24,7 +31,7 @@ private:
     static void SpellTooltipRemainingCooldownExtension();
 
     static void PatchSetSpell();
-    static void SetSpellExtension(CGTooltip* tooltip, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5, uint32_t a6, uint32_t a7, uint32_t a8, uint32_t a9, uint32_t a10, uint32_t a11, uint32_t a12, uint32_t a14, uint32_t a15, uint32_t a16);
+    static void SetSpellExtension(CGTooltip* tooltip, uint32_t spellID, uint32_t a3, uint32_t a4, uint32_t a5, uint32_t a6, uint32_t a7, uint32_t a8, uint32_t a9, uint32_t a10, uint32_t a11, uint32_t a12, uint32_t a14, uint32_t a15, uint32_t a16);
     
     static void AppendRuneCost(char* runeCostKey, int runeCount, char* buff, char* destBuffer);
     static int __fastcall GetVariableValueEx(void* _this, uint32_t edx, uint32_t spellVariable, uint32_t a3, SpellRow* spell, uint32_t a5, uint32_t a6, uint32_t a7, uint32_t a8, uint32_t a9);
