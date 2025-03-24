@@ -76,6 +76,10 @@ enum Powers : int32_t {
     POWER_RUNIC_POWER       = 7
 };
 
+enum SpellCastResult : uint32_t {
+    SPELL_FAILED_MOVING     = 51,
+};
+
 enum SpellFamilyNames : uint32_t {
     SPELLFAMILY_GENERIC     = 0,
     SPELLFAMILY_UNK1        = 1,
@@ -128,6 +132,7 @@ enum SpellAttr0Custom : uint32_t {
     SPELL_ATTR0_CU_INVERT_CASTBAR               = 0x00000020,   // NYI; will cost me some sanity it seems
     SPELL_ATTR0_CU_LOW_TIME_TREAT_AS_INSTANT    = 0x00000040,   // If cast time <= 250ms, changes tooltip line responsible to "Instant"
     SPELL_ATTR0_CU_LOW_TIME_FORCE_HIDE_CASTBAR  = 0x00000080,   // If cast time <= 250ms, does not display cast bar
+    SPELL_ATTR0_CU_LOW_CAST_TIME_DONT_INTERRUPT = 0x00000100,   // If cast time <= 250ms, does not interrupt
 };
 
 static uint32_t dummy = 0;
@@ -226,7 +231,7 @@ struct ObjectFields {
 };
 
 struct PlayerFields {
-    uint32_t padding[876];
+    uint32_t padding0x00[876];
     float blockPct;
     float dodgePct;
     float parryPct;
@@ -235,20 +240,58 @@ struct PlayerFields {
     float critPct;
     float rangedCritPct;
     float offhandCritPct;
-    float spellCritPct;
+    float spellCritPct[7];
     float shieldBlock;
     float shieldBlockCritPct;
+    uint32_t padding0x0DEC[190];
+    int32_t crWeaponSkill;
+    int32_t crDefenseSkill;
+    int32_t crDodge;
+    int32_t crParry;
+    int32_t crBlock;
+    int32_t crSpeed;        // crHitMelee
+    int32_t crLifesteal;    // crHitRanged
+    int32_t crAvoidance;    // crHitSpell
+    int32_t crCrit;         // crCritMelee
+    int32_t crCritRanged;
+    int32_t crCritSpell;
+    int32_t crHitTakenMelee;
+    int32_t crHitTakenRanged;
+    int32_t crHitTakenSpell;
+    int32_t crCritTakenMelee;
+    int32_t crCritTakenRanged;
+    int32_t crCritTakenSpell;
+    int32_t crHaste;        // crHasteMelee
+    int32_t crHasteRanged;
+    int32_t crHasteSpell;
+    int32_t crWeaponSkillMainhand;
+    int32_t crWeaponSkillOffhand;
+    int32_t crWeaponSkillRanged;
+    int32_t crMastery;      // crExpertise
+    int32_t crThorns;       // crArmorPenetration
+    uint32_t padding0x1120[70];
     // TODO: add rest when needed
 };
 
+struct UnitBytes0 {
+    uint8_t raceID;
+    uint8_t classID;
+    uint8_t genderID;
+    uint8_t powerTypeID;
+};
+
 struct UnitFields {
-    uint64_t padding[8];    // not defining those until we need them
+    uint64_t padding0x00[8];    // not defining those until we need them
     uint32_t channelSpell;
-    uint8_t unitBytes0[4];
+    UnitBytes0 unitBytes0;
     uint32_t unitCurrHealth;
     uint32_t unitCurrPowers[7];
     uint32_t unitMaxHealth;
     uint32_t unitMaxPowers[7];
+    float padding0x88[14];
+    uint32_t level;
+    uint32_t padding0xC4[20];
+    uint32_t petNumber;
     // TODO: add rest at some point, most likely when needed
 };
 
@@ -295,6 +338,16 @@ struct ChrClassesRow {
     uint32_t m_attackPowerPerStrength;
     uint32_t m_attackPowerPerAgility;
     uint32_t m_rangedAttackPowerPerAgility;
+};
+
+struct gtCombatRatingsRow {
+    uint32_t ID;
+    float data;
+};
+
+struct gtOCTClassCombatRatingScalarRow {
+    uint32_t ID;
+    float data;
 };
 
 struct MapRow {
@@ -477,6 +530,29 @@ struct SpellRuneCostRow {
     int32_t m_runicPower;
 };
 
+// Aleist3r: this is not a full struct afaik but that's what's needed in dll
+// will update if more fields are required
+struct WoWTime {
+    int32_t minute;
+    int32_t hour;
+    int32_t weekDay;
+    int32_t monthDay;
+    int32_t month;
+    int32_t year;
+    int32_t flags;
+};
+
+struct ZoneLightData {
+    int32_t mapID;
+    int32_t lightID;
+    void* pointData;
+    int32_t pointNum;
+    float minX;
+    float minY;
+    float maxX;
+    float maxY;
+};
+
 // client functions
 namespace CGChat {
     CLIENT_FUNCTION(AddChatMessage, 0x509DD0, __cdecl, bool, (char*, uint32_t, uint32_t, uint32_t, uint32_t*, uint32_t, char*, uint64_t, uint32_t, uint64_t, uint32_t, uint32_t, uint32_t*))
@@ -507,6 +583,10 @@ namespace ClientDB {
     CLIENT_FUNCTION(GetLocalizedRow, 0x4CFD20, __thiscall, int, (void*, uint32_t, void*))
 }
 
+namespace ClientPacket {
+    CLIENT_FUNCTION(MSG_SET_ACTION_BUTTON, 0x5AA390, __cdecl, void, (uint32_t, bool, bool))
+}
+
 namespace ClntObjMgr {
     CLIENT_FUNCTION(GetActivePlayer, 0x4D3790, __cdecl, uint64_t, ())
     CLIENT_FUNCTION(GetUnitFromName, 0x60C1F0, __cdecl, CGUnit*, (char*))
@@ -522,18 +602,27 @@ namespace CVar_C {
     CLIENT_FUNCTION(sub_766940, 0x766940, __thiscall, void, (void*, int, char, char, char, char))
 }
 
+namespace DNInfo {
+    CLIENT_FUNCTION(AddZoneLight, 0x7ED150, __thiscall, void, (void*, int32_t, float))
+    CLIENT_FUNCTION(GetDNInfoPtr, 0x7ECEF0, __stdcall, void*, ())
+}
+
 namespace FrameScript {
     CLIENT_FUNCTION(GetParam, 0x815500, __cdecl, bool, (lua_State*, int, int))
     CLIENT_FUNCTION(GetText, 0x819D40, __cdecl, char*, (char*, int, int))
     CLIENT_FUNCTION(SignalEvent, 0x81B530, __cdecl, int, (uint32_t, char*, ...))
 }
 
-namespace ClientPacket {
-    CLIENT_FUNCTION(MSG_SET_ACTION_BUTTON, 0x5AA390, __cdecl, void, (uint32_t, bool, bool))
+namespace NTempest {
+    CLIENT_FUNCTION(DistanceSquaredFromEdge, 0x7F9C90, __cdecl, bool, (int32_t, void*, C2Vector*, float*))
 }
 
 namespace SpellParser {
     CLIENT_FUNCTION(ParseText, 0x57ABC0, __cdecl, void, (void*, void*, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t))
+}
+
+namespace Spell_C {
+    CLIENT_FUNCTION(SpellFailed, 0x808200, __cdecl, void, (void*, SpellRow*, uint32_t, int32_t, int32_t, uint32_t))
 }
 
 namespace SpellRec_C {

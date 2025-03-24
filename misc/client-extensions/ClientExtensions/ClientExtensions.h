@@ -5,6 +5,7 @@
 #include "Misc/MiscFixes.h"
 #include "Movement/MovementExtensions.h"
 #include "Tooltip/SpellTooltipExtensions.h"
+#include "World/WorldData.h"
 
 class ClientExtensions {
 public:
