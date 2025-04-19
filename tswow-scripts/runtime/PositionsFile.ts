@@ -1,4 +1,3 @@
-import * as clipboardy from 'clipboardy';
 import { wfs } from "../util/FileSystem";
 import { ipaths } from '../util/Paths';
 import { NodeConfig } from "./NodeConfig";
@@ -22,7 +21,10 @@ export namespace PositionsFile {
             wfs.watch(ipaths.coredata.positions_txt.get(),(evt,filename)=>{
                 let value = ipaths.coredata.positions_txt.readString('')
                 if(value.length > oldContent.length) {
-                    clipboardy.writeSync(value);
+                    (async () => {
+                        const clipboardy = await import("clipboardy");
+                        clipboardy.default.writeSync(value);
+                    })(); 
                 }
                 oldContent = value;
             });

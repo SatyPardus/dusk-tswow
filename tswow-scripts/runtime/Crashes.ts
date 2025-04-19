@@ -11,8 +11,8 @@ export class Crashes {
             return
         }
 
-        term.debug('misc', `Initializing crashlog handler`)
-        chokidar.watch(ipaths.modules.abs().get(),{
+        term.debug('misc', `Initializing crashlog handler`);
+        (chokidar.watch(ipaths.modules.abs().get(),{
             ignored: [
                 /build$/
               , /Buildings$/
@@ -31,7 +31,7 @@ export class Crashes {
               , /luaxml_source/
               , /(^|[\/\\])\../
           ]
-        }).on('add',sfile=>{
+        }) as any).on('add',sfile=>{
             let file = new WFile(sfile);
             if(file.basename(1).get() !== 'Crashes') return;
             const ctime = file.ctime();

@@ -46,7 +46,7 @@ child_process.execSync('npm i source-map-support --no-save',{stdio:'inherit'})
 
 child_process.execSync(
       `node -r source-map-support/register`
-    + ` ${path.join(bootstrapDir,'compile','CompileTsWow.js')}`
+    + ` ${path.join(bootstrapDir,'tswow-scripts','compile','CompileTsWow.js')}`
     + ` ${process.argv.slice(2).join(' ')}`
     + ` --ignore **/wotlkdata/**`
     + ` --ipaths=${installDir}`
