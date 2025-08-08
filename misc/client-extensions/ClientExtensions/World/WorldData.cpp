@@ -35,6 +35,8 @@ void WorldDataExtensions::FillOcclusionVolumeData() {
 
         data.mapID = row->mapID;
         data.flags = row->flags;
+        data.min   = {3.4028235e38, 3.4028235e38, 3.4028235e38};
+        data.max   = {-3.4028235e38, -3.4028235e38, -3.4028235e38};
 
         for (uint32_t j = occlusionVolumePointMin; j <= zoneLightPointMax; j++)
         {
@@ -63,10 +65,20 @@ void WorldDataExtensions::FillOcclusionVolumeData() {
         GlobalOcclusionVolumeData.push_back(data);
     }
 
-    // TODO
-    // replace s_occlusionVolumes (0x00AF0040)
-    // reset s_occlusionVolumesInit (0x00D2DCD4)
-    // call InitOcclusionVolumes (0x007CCD20)
+    // Lets patch all functions that use the occlusion volumes.
+    // For some reason some functions access the list by an offset.
+    // Investigate maybe? Did I do something wrong? :D
+    uintptr_t occlusionVolumePtr = reinterpret_cast<uintptr_t>(GlobalOcclusionVolumeData.data()));
+    Util::OverwriteUInt32AtAddress(0x007CDD23, occlusionVolumePtr);
+    Util::OverwriteUInt32AtAddress(0x007CD900, occlusionVolumePtr + 0x4);
+    Util::OverwriteUInt32AtAddress(0x007CCD30, occlusionVolumePtr + 0x8);
+    Util::OverwriteUInt32AtAddress(0x007CDC16, occlusionVolumePtr + 0x20);
+
+    // Reset s_occlusionVolumesInit
+    *(DWORD*)0x00D2DCD4 = 0;
+
+    // Call InitOcclusionVolumes
+    reinterpret_cast<int(__cdecl*)()>(0x007CCD20)();
 }
 
 void WorldDataExtensions::FillZoneLightData() {
