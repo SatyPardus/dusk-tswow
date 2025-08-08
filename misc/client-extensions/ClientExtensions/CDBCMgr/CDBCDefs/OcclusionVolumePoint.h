@@ -25,13 +25,13 @@ class OcclusionVolumePoint : public CDBC
 {
   public:
     const char* fileName = "OcclusionVolumePoint";
-    OcclusionVolume() : CDBC()
+    OcclusionVolumePoint() : CDBC()
     {
         this->numColumns = sizeof(OcclusionVolumePointRow) / 4;
         this->rowSize    = sizeof(OcclusionVolumePointRow);
     }
 
-    OcclusionVolume* LoadDB()
+    OcclusionVolumePoint* LoadDB()
     {
         GlobalCDBCMap.addCDBC(this->fileName);
         CDBC::LoadDB(this->fileName);
