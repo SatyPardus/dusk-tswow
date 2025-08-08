@@ -1,6 +1,8 @@
 #include "WorldData.h"
 #include "CDBCMgr/CDBCDefs/ZoneLight.h"
 #include "CDBCMgr/CDBCDefs/ZoneLightPoint.h"
+#include "CDBCMgr/CDBCDefs/OcclusionVolume.h"
+#include "CDBCMgr/CDBCDefs/OcclusionVolumePoint.h"
 #include "Logger.h"
 
 void WorldDataExtensions::Apply() {
@@ -13,6 +15,58 @@ void WorldDataExtensions::Apply() {
     Util::OverwriteUInt32AtAddress(0x9E0360, 0x5EEB70);
     
     FillZoneLightData();
+    FillOcclusionVolumeData();
+}
+
+void WorldDataExtensions::FillOcclusionVolumeData() {
+    int32_t occlusionVolumeMin      = GlobalCDBCMap.getIndexRange("OcclusionVolume").first;
+    int32_t occlusionVolumeMax      = GlobalCDBCMap.getIndexRange("OcclusionVolume").second;
+    int32_t occlusionVolumePointMin = GlobalCDBCMap.getIndexRange("OcclusionVolumePoint").first;
+    int32_t occlusionVolumePointMax = GlobalCDBCMap.getIndexRange("OcclusionVolumePoint").second;
+
+    for (uint32_t i = occlusionVolumeMin; i <= occlusionVolumeMax; i++)
+    {
+        OcclusionVolumeData data     = {0};
+        OcclusionVolumeRow* row      = GlobalCDBCMap.getRow<OcclusionVolumeRow>("OcclusionVolume", i);
+        std::vector<C3Vector> points = {};
+
+        if (!row)
+            continue;
+
+        data.mapID = row->mapID;
+        data.flags = row->flags;
+
+        for (uint32_t j = occlusionVolumePointMin; j <= zoneLightPointMax; j++)
+        {
+            OcclusionVolumePointRow* tempRow = GlobalCDBCMap.getRow<OcclusionVolumePointRow>("OcclusionVolumePoint", j);
+            C3Vector tempVec           = {0};
+
+            if (!tempRow || tempRow->occlusionVolumeID != row->ID)
+                continue;
+
+            tempVec.x = tempRow->positionX;
+            tempVec.y = tempRow->positionY;
+            tempVec.z = tempRow->positionZ;
+
+            points.push_back(tempVec);
+        }
+
+        if (points.size())
+        {
+            data.pointData = malloc(points.size() * sizeof(C3Vector));
+            // Aleist3r: it throws 6387 but it can't be 0 if points.size() is not 0, smh stupid VS
+            #pragma warning(suppress : 6387)
+            memcpy(data.pointData, &points[0], sizeof(C3Vector) * points.size());
+            data.pointNum = points.size();
+        }
+
+        GlobalOcclusionVolumeData.push_back(data);
+    }
+
+    // TODO
+    // replace s_occlusionVolumes (0x00AF0040)
+    // reset s_occlusionVolumesInit (0x00D2DCD4)
+    // call InitOcclusionVolumes (0x007CCD20)
 }
 
 void WorldDataExtensions::FillZoneLightData() {
