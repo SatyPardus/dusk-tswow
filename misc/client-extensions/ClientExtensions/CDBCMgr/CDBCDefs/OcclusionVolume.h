@@ -33,7 +33,7 @@ class OcclusionVolume : public CDBC
     {
         GlobalCDBCMap.addCDBC(this->fileName);
         CDBC::LoadDB(this->fileName);
-        ZoneLight::setupStringsAndTable();
+        OcclusionVolume::setupStringsAndTable();
         CDBCMgr::addCDBCLuaHandler(this->fileName, [this](lua_State* L, int row) { return this->handleLua(L, row); });
         GlobalCDBCMap.setIndexRange(this->fileName, this->minIndex, this->maxIndex);
         return this;
