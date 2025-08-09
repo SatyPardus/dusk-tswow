@@ -88,7 +88,7 @@ export class OcclusionVolumeCDBCFile extends CDBCFile<
     OcclusionVolumeCreator,
     OcclusionVolumeQuery,
     OcclusionVolumeRow> {
-    protected defaultRow = [1, "Unnamed", 2, 1];
+    protected defaultRow = [0, "Default", 0, 0];
 
     constructor() {
         super('OcclusionVolume', (t, b, o) => new OcclusionVolumeRow(t, b, o))
@@ -105,7 +105,7 @@ export class OcclusionVolumeCDBCFile extends CDBCFile<
     }
 
     override fileWork(): void {
-        const defaultOcclusionVolumes: Record<number, { Name: string, MapID: number, Flags: number }> = {
+        const defaultOcclusionVolumes: Record<int, { Name: string, MapID: uint, Flags: uint }> = {
             1: { Name: "Unnamed", MapID: 0, Flags: 0 },
             2: { Name: "Unnamed", MapID: 571, Flags: 0 },
             3: { Name: "Unnamed", MapID: 571, Flags: 2 },
