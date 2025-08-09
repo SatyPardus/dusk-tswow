@@ -6,9 +6,9 @@ struct OcclusionVolumePointRow
 {
     int32_t ID;
     int32_t occlusionVolumeID;
-    double positionX;
-    double positionY;
-    double positionZ;
+    float positionX;
+    float positionY;
+    float positionZ;
 
     int handleLuaPush(lua_State* L)
     {

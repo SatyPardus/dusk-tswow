@@ -95,7 +95,7 @@ export class OcclusionVolumePointCDBCFile extends CDBCFile<
     OcclusionVolumePointCreator,
     OcclusionVolumePointQuery,
     OcclusionVolumePointRow> {
-    protected defaultRow = [1, 1, 0.0, 0.0, 0.0];
+    protected defaultRow = [0, 0, 0.0, 0.0, 0.0];
 
     constructor() {
         super('OcclusionVolumePoint', (t, b, o) => new OcclusionVolumePointRow(t, b, o))
@@ -112,7 +112,7 @@ export class OcclusionVolumePointCDBCFile extends CDBCFile<
     }
 
     override fileWork(): void {
-        const defaultOcclusionVolumePoint: Record<number, { OcclusionVolumeID: number, PositionX: number, PositionY: number, PositionZ: number }> = {
+        const defaultOcclusionVolumePoint: Record<int, { OcclusionVolumeID: uint, PositionX: float, PositionY: float, PositionZ: float }> = {
             1: { OcclusionVolumeID: 0, PositionX: -8814.79, PositionY: 474.86, PositionZ: 0 },
             2: { OcclusionVolumeID: 0, PositionX: -8814.79, PositionY: 474.86, PositionZ: 138.87 },
             3: { OcclusionVolumeID: 0, PositionX: -8986.46, PositionY: 679.74, PositionZ: 138.87 },
