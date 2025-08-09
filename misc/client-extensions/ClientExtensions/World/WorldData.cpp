@@ -35,10 +35,10 @@ void WorldDataExtensions::FillOcclusionVolumeData() {
 
         data.mapID = row->mapID;
         data.flags = row->flags;
-        data.min   = {3.4028235e38, 3.4028235e38, 3.4028235e38};
-        data.max   = {-3.4028235e38, -3.4028235e38, -3.4028235e38};
+        data.min   = {3.4028235e38f, 3.4028235e38f, 3.4028235e38f};
+        data.max   = {-3.4028235e38f, -3.4028235e38f, -3.4028235e38f};
 
-        for (uint32_t j = occlusionVolumePointMin; j <= zoneLightPointMax; j++)
+        for (uint32_t j = occlusionVolumePointMin; j <= occlusionVolumePointMax; j++)
         {
             OcclusionVolumePointRow* tempRow = GlobalCDBCMap.getRow<OcclusionVolumePointRow>("OcclusionVolumePoint", j);
             C3Vector tempVec           = {0};
@@ -58,7 +58,7 @@ void WorldDataExtensions::FillOcclusionVolumeData() {
             data.pointData = malloc(points.size() * sizeof(C3Vector));
             // Aleist3r: it throws 6387 but it can't be 0 if points.size() is not 0, smh stupid VS
             #pragma warning(suppress : 6387)
-            memcpy(data.pointData, &points[0], sizeof(C3Vector) * points.size());
+            memcpy(data.pointData, points.data(), sizeof(C3Vector) * points.size());
             data.pointNum = points.size();
         }
 
@@ -68,9 +68,9 @@ void WorldDataExtensions::FillOcclusionVolumeData() {
     // Lets patch all functions that use the occlusion volumes.
     // For some reason some functions access the list by an offset.
     // Investigate maybe? Did I do something wrong? :D
-    uintptr_t occlusionVolumePtr = reinterpret_cast<uintptr_t>(GlobalOcclusionVolumeData.data()));
+    uintptr_t occlusionVolumePtr = reinterpret_cast<uintptr_t>(GlobalOcclusionVolumeData.data());
     Util::OverwriteUInt32AtAddress(0x007CDD23, occlusionVolumePtr);
-    Util::OverwriteUInt32AtAddress(0x007CD900, occlusionVolumePtr + 0x4);
+    Util::OverwriteUInt32AtAddress(0x007CD8A0, occlusionVolumePtr + 0x4);
     Util::OverwriteUInt32AtAddress(0x007CCD30, occlusionVolumePtr + 0x8);
     Util::OverwriteUInt32AtAddress(0x007CDC16, occlusionVolumePtr + 0x20);
 
