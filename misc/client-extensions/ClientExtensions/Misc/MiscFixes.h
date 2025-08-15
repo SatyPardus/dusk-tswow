@@ -11,7 +11,10 @@ public:
     static inline std::unordered_set<void*> g_models_current;
     static inline std::unordered_set<void*> g_models_being_faded;
     static inline int g_models_cleanup_timer = 0;
-private:
+    static inline bool g_models_collision_check = false;
+    static inline CVar* g_models_alpha_cvar;
+
+  private:
     static void Apply();
     static bool __fastcall ShouldObjectFadeIn(CGObject* _this, uint32_t unused);
     static void UpdateObjectVtable();
@@ -24,6 +27,7 @@ private:
     static void UnpackWoWTime(uint32_t packedTime, int32_t* minute, int32_t* hour, int32_t* weekDay, int32_t* monthDay, int32_t* month, int32_t* year, int32_t* flags);
 
     static char CGWorldFrame_Intersect(C3Vector* start, C3Vector* end, C3Vector* hitPoint, float* distance, uint32_t flag, uint32_t buffer);
+    static unsigned __int8 ModelsAlpha_CVarCallback(CVar* cvar, const char*, const char* value, const char*);
 
     friend class ClientExtensions;
 
