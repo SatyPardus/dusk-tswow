@@ -44,7 +44,7 @@ char __cdecl MiscFixes::CGWorldFrame_Intersect(C3Vector* start, C3Vector* end, C
                     }
 
                     float* alphaPtr = reinterpret_cast<float*>(static_cast<char*>(modelPtr) + 0x17C);
-                    *alphaPtr += (0.2f - *alphaPtr) * 0.25f;
+                    *alphaPtr += (0.6f - *alphaPtr) * 0.25f;
                 }
                 return 0;
             }
