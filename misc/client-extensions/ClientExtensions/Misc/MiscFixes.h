@@ -7,6 +7,10 @@
 class MiscFixes {
 public:
     static void SetYearOffsetMultiplier();
+    static inline std::unordered_map<void*, float> g_models_original_alphas;
+    static inline std::unordered_set<void*> g_models_current;
+    static inline std::unordered_set<void*> g_models_being_faded;
+    static inline int g_models_cleanup_timer = 0;
 private:
     static void Apply();
     static bool __fastcall ShouldObjectFadeIn(CGObject* _this, uint32_t unused);
@@ -21,19 +25,7 @@ private:
 
     static char CGWorldFrame_Intersect(C3Vector* start, C3Vector* end, C3Vector* hitPoint, float* distance, uint32_t flag, uint32_t buffer);
 
-    typedef void(__cdecl* VectorIntersectDoodadDefsType)(TSList* a1, unsigned int a2);
-    static inline VectorIntersectDoodadDefsType VectorIntersectDoodadDefs = (VectorIntersectDoodadDefsType)(0x007A2760);
-    static void VectorIntersectDoodadDefsDetour(TSList* a1, unsigned int a2);
-
-    typedef int(__cdecl* World__GetFacetsType)(int a1, int a2, int a3, int a4);
-    static inline World__GetFacetsType World__GetFacets = (World__GetFacetsType)(0x0077F330);
-    static int World__GetFacetsDetour(int a1, int a2, int a3, int a4);
-
     friend class ClientExtensions;
 
     static inline uint32_t yearOffsetMult = 0;
-    static inline std::unordered_map<void*, float> g_models_original_alphas;
-    static inline std::unordered_set<void*> g_models_current;
-    static inline std::unordered_set<void*> g_models_being_faded;
-    static inline int g_models_cleanup_timer = 0;
 };
