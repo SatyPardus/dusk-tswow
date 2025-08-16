@@ -27,7 +27,7 @@ public:
     static void UnpackWoWTime(uint32_t packedTime, int32_t* minute, int32_t* hour, int32_t* weekDay, int32_t* monthDay, int32_t* month, int32_t* year, int32_t* flags);
 
     static char CGWorldFrame_Intersect(C3Vector* start, C3Vector* end, C3Vector* hitPoint, float* distance, uint32_t flag, uint32_t buffer);
-    static unsigned __int8 ModelsAlpha_CVarCallback(CVar* cvar, const char*, const char* value, const char*);
+    static char ModelsAlpha_CVarCallback(CVar* cvar, const char*, const char* value, const char*);
 
     friend class ClientExtensions;
 
