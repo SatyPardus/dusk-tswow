@@ -16,10 +16,10 @@ void MiscFixes::CameraCollisionFade() {
     Util::OverwriteUInt32AtAddress(0x006060FF, fnAddress - 0x00606103);
 }
 
-unsigned __int8 MiscFixes::ModelsAlpha_CVarCallback(CVar* cvar, const char*, const char* value, const char*)
+char MiscFixes::ModelsAlpha_CVarCallback(CVar* cvar, const char*, const char* value, const char*)
 {
     float alpha = std::atof(value);
-    if (alpha < 0.6f || alpha > 1f)
+    if (alpha < 0.6f || alpha > 1.0f)
         return 0;
     cvar->m_numberValue = alpha;
     return 1;
