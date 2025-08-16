@@ -564,7 +564,8 @@ struct RCString
     DWORD ukn1;
     char* string;
 };
-
+struct CVar;
+typedef char(__cdecl* CVarCallback)(CVar*, const char*, const char*, const char*);
 struct CVar
 {
     DWORD pad[0x18];
@@ -578,7 +579,7 @@ struct CVar
     RCString m_resetValue;
     RCString m_latchedValue;
     RCString m_help;
-    bool(__cdecl* m_callback)(CVar*, const char*, const char*, void*);
+    CVarCallback m_callback;
     void* m_arg;
 };
 
@@ -623,8 +624,6 @@ namespace ClntObjMgr {
 }
 
 namespace CVar_C {
-    typedef unsigned __int8(__cdecl* CVarCallback)(CVar*, const char*, const char*, const char*);
-
     CLIENT_FUNCTION(sub_766940, 0x766940, __thiscall, void, (void*, int, char, char, char, char))
     CLIENT_FUNCTION(Register, 0x00767FC0, __cdecl, CVar*, (char*, char*, int, char*, CVarCallback, int, char, int, char))
 }
