@@ -558,6 +558,30 @@ struct TSList
     TSLink m_terminator;
 };
 
+struct RCString
+{
+    void** vtable;
+    DWORD ukn1;
+    char* string;
+};
+
+struct CVar
+{
+    DWORD pad[0x18];
+    DWORD m_category;
+    DWORD m_flags;
+    RCString m_stringValue;
+    float m_numberValue;
+    int m_intValue;
+    int m_modified;
+    RCString m_defaultValue;
+    RCString m_resetValue;
+    RCString m_latchedValue;
+    RCString m_help;
+    bool(__cdecl* m_callback)(CVar*, const char*, const char*, void*);
+    void* m_arg;
+};
+
 // client functions
 namespace CGChat {
     CLIENT_FUNCTION(AddChatMessage, 0x509DD0, __cdecl, bool, (char*, uint32_t, uint32_t, uint32_t, uint32_t*, uint32_t, char*, uint64_t, uint32_t, uint64_t, uint32_t, uint32_t, uint32_t*))
@@ -599,7 +623,10 @@ namespace ClntObjMgr {
 }
 
 namespace CVar_C {
+    typedef unsigned __int8(__cdecl* CVarCallback)(CVar*, const char*, const char*, const char*);
+
     CLIENT_FUNCTION(sub_766940, 0x766940, __thiscall, void, (void*, int, char, char, char, char))
+    CLIENT_FUNCTION(Register, 0x00767FC0, __cdecl, CVar*, (char*, char*, int, char*, CVarCallback, int, char, int, char))
 }
 
 namespace DNInfo {

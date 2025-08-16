@@ -11,8 +11,18 @@ void MiscFixes::Apply() {
 // Heavily inspired, and partially copied, from
 // https://github.com/someweirdhuman/awesome_wotlk/pull/25
 void MiscFixes::CameraCollisionFade() {
+    g_models_alpha_cvar = CVar_C::Register("modelFadeAlpha", "Alpha value for objects in camera LOS", 1, "0.6", ModelsAlpha_CVarCallback, 5, 0, 0, 0);
     uintptr_t fnAddress = reinterpret_cast<uintptr_t>(&CGWorldFrame_Intersect);
     Util::OverwriteUInt32AtAddress(0x006060FF, fnAddress - 0x00606103);
+}
+
+unsigned __int8 MiscFixes::ModelsAlpha_CVarCallback(CVar* cvar, const char*, const char* value, const char*)
+{
+    float alpha = std::atof(value);
+    if (alpha < 0.6f || alpha > 1f)
+        return 0;
+    cvar->m_numberValue = alpha;
+    return 1;
 }
 
 CLIENT_DETOUR(World__GetFacets,0x0077F330,__cdecl,int,(int a1, int a2, int a3, int a4)) {
@@ -20,17 +30,20 @@ CLIENT_DETOUR(World__GetFacets,0x0077F330,__cdecl,int,(int a1, int a2, int a3, i
 }
 
 CLIENT_DETOUR(VectorIntersectDoodadDefs,0x007A2760, __cdecl, void, (TSList* a1, unsigned int a2)) {
-    auto next = a1->m_terminator.m_next;
-    while ((reinterpret_cast<uintptr_t>(next) & 1) == 0 && next)
+    if (MiscFixes::g_models_collision_check)
     {
-        auto v5 = *reinterpret_cast<uint32_t*>((uintptr_t)next + 4);
-        auto modelPtr = *reinterpret_cast<void**>(v5 + 0x34);
+        auto next = a1->m_terminator.m_next;
+        while ((reinterpret_cast<uintptr_t>(next) & 1) == 0 && next)
+        {
+            auto v5       = *reinterpret_cast<uint32_t*>((uintptr_t)next + 4);
+            auto modelPtr = *reinterpret_cast<void**>(v5 + 0x34);
 
-        if (modelPtr)
-            if (MiscFixes::g_models_current.find(modelPtr) != MiscFixes::g_models_current.end())
-                *reinterpret_cast<uint32_t*>(v5 + 0x2C) = *(uint32_t*)0x00CE04C4; 
+            if (modelPtr)
+                if (MiscFixes::g_models_current.find(modelPtr) != MiscFixes::g_models_current.end())
+                    *reinterpret_cast<uint32_t*>(v5 + 0x2C) = *(uint32_t*)0x00CE04C4;
 
-        next = *reinterpret_cast<DWORD**>((uintptr_t)next + a1->m_linkoffset + 4);
+            next = *reinterpret_cast<DWORD**>((uintptr_t)next + a1->m_linkoffset + 4);
+        }
     }
 
     VectorIntersectDoodadDefs(a1, a2);
@@ -42,6 +55,7 @@ char __cdecl MiscFixes::CGWorldFrame_Intersect(C3Vector* start, C3Vector* end, C
     if (buf)
     {
         std::memset(buf, 0, 2048);
+        MiscFixes::g_models_collision_check = true;
         if (CGWorldFrame::Intersect(start, end, hitPoint, distance, flag + 1, reinterpret_cast<uintptr_t>(buf)))
         {
             const uint32_t type  = *reinterpret_cast<const uint32_t*>(reinterpret_cast<const uint8_t*>(buf) + 0);
@@ -61,11 +75,13 @@ char __cdecl MiscFixes::CGWorldFrame_Intersect(C3Vector* start, C3Vector* end, C
                     }
 
                     float* alphaPtr = reinterpret_cast<float*>(static_cast<char*>(modelPtr) + 0x17C);
-                    *alphaPtr += (0.6f - *alphaPtr) * 0.25f;
+                    *alphaPtr += (MiscFixes::g_models_alpha_cvar->m_numberValue - *alphaPtr) * 0.25f;
                 }
                 return 0;
             }
         }
+        MiscFixes::g_models_collision_check = false;
+
         if (MiscFixes::g_models_cleanup_timer > 2)
         {
             for (auto it = MiscFixes::g_models_being_faded.begin(); it != MiscFixes::g_models_being_faded.end();)
