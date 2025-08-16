@@ -12,104 +12,84 @@ void MiscFixes::Apply() {
 // https://github.com/someweirdhuman/awesome_wotlk/pull/25
 void MiscFixes::CameraCollisionFade() {
     g_models_alpha_cvar = CVar_C::Register("modelFadeAlpha", "Alpha value for objects in camera LOS", 1, "0.6", ModelsAlpha_CVarCallback, 5, 0, 0, 0);
-    uintptr_t fnAddress = reinterpret_cast<uintptr_t>(&CGWorldFrame_Intersect);
+    const uintptr_t fnAddress = reinterpret_cast<uintptr_t>(&CGWorldFrame_Intersect);
     Util::OverwriteUInt32AtAddress(0x006060FF, fnAddress - 0x00606103);
 }
 
-char MiscFixes::ModelsAlpha_CVarCallback(CVar* cvar, const char*, const char* value, const char*)
-{
-    float alpha = std::atof(value);
-    if (alpha < 0.6f || alpha > 1.0f)
+char MiscFixes::ModelsAlpha_CVarCallback(CVar* cvar, const char*, const char* value, const char*) {
+    const float alpha = std::atof(value);
+    if (alpha != std::clamp(alpha, MIN_ALPHA, MAX_ALPHA))
         return 0;
     cvar->m_numberValue = alpha;
     return 1;
 }
 
-CLIENT_DETOUR(World__GetFacets,0x0077F330,__cdecl,int,(int a1, int a2, int a3, int a4)) {
+CLIENT_DETOUR(World__GetFacets, 0x0077F330, __cdecl, int, (int a1, int a2, int a3, int a4)) {
     return World__GetFacets(a1, a2, a3 & ~1u, a4);
 }
 
-CLIENT_DETOUR(VectorIntersectDoodadDefs,0x007A2760, __cdecl, void, (TSList* a1, unsigned int a2)) {
-    if (MiscFixes::g_models_collision_check)
-    {
-        auto next = a1->m_terminator.m_next;
-        while ((reinterpret_cast<uintptr_t>(next) & 1) == 0 && next)
-        {
-            auto v5       = *reinterpret_cast<uint32_t*>((uintptr_t)next + 4);
-            auto modelPtr = *reinterpret_cast<void**>(v5 + 0x34);
+CLIENT_DETOUR(VectorIntersectDoodadDefs, 0x007A2760, __cdecl, void, (TSList* a1, unsigned int a2)) {
+    if (MiscFixes::g_models_collision_check) {
+        const uint32_t globalAlphaFlag = *(uint32_t*)0x00CE04C4;
+        for (void* next = a1->m_terminator.m_next; next && (reinterpret_cast<uintptr_t>(next) & 1) == 0; next = *reinterpret_cast<DWORD**>((uintptr_t)next + a1->m_linkoffset + 4)) {
+            const uint32_t v5 = *reinterpret_cast<uint32_t*>((uintptr_t)next + 4);
+            void* modelPtr = *reinterpret_cast<void**>(v5 + MiscFixes::MODEL_PTR_OFFSET);
 
-            if (modelPtr)
-                if (MiscFixes::g_models_current.find(modelPtr) != MiscFixes::g_models_current.end())
-                    *reinterpret_cast<uint32_t*>(v5 + 0x2C) = *(uint32_t*)0x00CE04C4;
-
-            next = *reinterpret_cast<DWORD**>((uintptr_t)next + a1->m_linkoffset + 4);
+            if (modelPtr && MiscFixes::g_models_current.count(modelPtr)) 
+                *reinterpret_cast<uint32_t*>(v5 + MiscFixes::ALPHA_FLAG_OFFSET) = globalAlphaFlag;
         }
     }
 
     VectorIntersectDoodadDefs(a1, a2);
 }
 
-char __cdecl MiscFixes::CGWorldFrame_Intersect(C3Vector* start, C3Vector* end, C3Vector* hitPoint, float* distance, uint32_t flag, uint32_t buffer)
-{
-    void* buf = std::malloc(2048);
-    if (buf)
-    {
-        std::memset(buf, 0, 2048);
-        MiscFixes::g_models_collision_check = true;
-        if (CGWorldFrame::Intersect(start, end, hitPoint, distance, flag + 1, reinterpret_cast<uintptr_t>(buf)))
-        {
-            const uint32_t type  = *reinterpret_cast<const uint32_t*>(reinterpret_cast<const uint8_t*>(buf) + 0);
-            const uint32_t count = *reinterpret_cast<const uint32_t*>(reinterpret_cast<const uint8_t*>(buf) + 4);
+char __cdecl MiscFixes::CGWorldFrame_Intersect(C3Vector* start, C3Vector* end, C3Vector* hitPoint, float* distance, uint32_t flag, uint32_t buffer) {
+    alignas(8) char stackBuf[BUFFER_SIZE] = {};
+    void* buf = stackBuf;
+    MiscFixes::g_models_collision_check = true;
+    if (CGWorldFrame::Intersect(start, end, hitPoint, distance, flag + 1, reinterpret_cast<uintptr_t>(buf))) {
+        const uint32_t type = *reinterpret_cast<const uint32_t*>(buf);
+        const uint32_t count = *reinterpret_cast<const uint32_t*>(static_cast<const uint8_t*>(buf) + 4);
 
-            if (type == 1 && count > 0)
-            {
-                void* modelPtr = *reinterpret_cast<void**>(reinterpret_cast<uint8_t*>(buf) + 12 + 80);
-                if (modelPtr)
-                {
-                    MiscFixes::g_models_current.insert(modelPtr);
-                    MiscFixes::g_models_being_faded.insert(modelPtr);
+        if (type == 1 && count > 0) {
+            void* modelPtr = *reinterpret_cast<void**>(static_cast<uint8_t*>(buf) + 92); // 12 + 80
+            if (modelPtr) {
+                MiscFixes::g_models_current.insert(modelPtr);
+                MiscFixes::g_models_being_faded.insert(modelPtr);
 
-                    if (MiscFixes::g_models_original_alphas.find(modelPtr) == MiscFixes::g_models_original_alphas.end())
-                    {
-                       MiscFixes::g_models_original_alphas[modelPtr] = *reinterpret_cast<float*>(static_cast<char*>(modelPtr) + 0x17C);
-                    }
-
-                    float* alphaPtr = reinterpret_cast<float*>(static_cast<char*>(modelPtr) + 0x17C);
-                    *alphaPtr += (MiscFixes::g_models_alpha_cvar->m_numberValue - *alphaPtr) * 0.25f;
-                }
-                return 0;
+                MiscFixes::g_models_original_alphas.emplace(modelPtr, *reinterpret_cast<float*>(static_cast<char*>(modelPtr) + MiscFixes::MODEL_ALPHA_OFFSET));
+                float* alphaPtr = reinterpret_cast<float*>(static_cast<char*>(modelPtr) + MiscFixes::MODEL_ALPHA_OFFSET);
+                const float targetAlpha = MiscFixes::g_models_alpha_cvar->m_numberValue;
+                *alphaPtr += (targetAlpha - *alphaPtr) * MiscFixes::FADE_SPEED;
             }
+            return 0;
         }
-        MiscFixes::g_models_collision_check = false;
+    }
+    MiscFixes::g_models_collision_check = false;
 
-        if (MiscFixes::g_models_cleanup_timer > 2)
-        {
-            for (auto it = MiscFixes::g_models_being_faded.begin(); it != MiscFixes::g_models_being_faded.end();)
-            {
-                void* modelPtr = *it;
+    if (++MiscFixes::g_models_cleanup_timer > MiscFixes::CLEANUP_INTERVAL) {
+        g_models_cleanup_timer = 0;
+        for (auto it = g_models_being_faded.begin(); it != g_models_being_faded.end(); ) {
+            void* modelPtr = *it;
 
-                if (!(MiscFixes::g_models_current.find(modelPtr) != MiscFixes::g_models_current.end()))
-                {
-                    float* alphaPtr     = reinterpret_cast<float*>(static_cast<char*>(modelPtr) + 0x17C);
-                    float originalAlpha = MiscFixes::g_models_original_alphas[modelPtr];
+            if (!g_models_current.count(modelPtr)) {
+                float* alphaPtr = reinterpret_cast<float*>(static_cast<char*>(modelPtr) + MiscFixes::MODEL_ALPHA_OFFSET);
+                auto itAlpha = g_models_original_alphas.find(modelPtr);
+                if (itAlpha != g_models_original_alphas.end()) {
+                    const float originalAlpha = itAlpha->second;
+                    *alphaPtr += (originalAlpha - *alphaPtr) * FADE_SPEED;
 
-                    *alphaPtr += (originalAlpha - *alphaPtr) * 0.25f;
-
-                    if (std::fabs(*alphaPtr - originalAlpha) < 0.01f)
-                    {
+                    if (std::abs(*alphaPtr - originalAlpha) < ALPHA_THRESHOLD) {
                         *alphaPtr = originalAlpha;
-                        MiscFixes::g_models_original_alphas.erase(modelPtr);
-                        it = MiscFixes::g_models_being_faded.erase(it);
+                        g_models_original_alphas.erase(itAlpha);
+                        it = g_models_being_faded.erase(it);
                         continue;
                     }
                 }
-                ++it;
             }
-            MiscFixes::g_models_current.clear();
-            MiscFixes::g_models_cleanup_timer = 0;
+            ++it;
         }
-        MiscFixes::g_models_cleanup_timer++;
-        std::free(buf);
+        g_models_current.clear();
     }
 
     // Remove M2 camera collisions for object fading

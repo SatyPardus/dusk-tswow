@@ -3,6 +3,8 @@
 #include "SharedDefines.h"
 #include <unordered_map>
 #include <unordered_set>
+#include <cmath>
+#include <algorithm>
 
 class MiscFixes {
 public:
@@ -14,7 +16,17 @@ public:
     static inline bool g_models_collision_check = false;
     static inline CVar* g_models_alpha_cvar;
 
-  private:
+    static constexpr float MIN_ALPHA = 0.6f;
+    static constexpr float MAX_ALPHA = 1.0f;
+    static constexpr float FADE_SPEED = 0.25f;
+    static constexpr float ALPHA_THRESHOLD = 0.01f;
+    static constexpr int CLEANUP_INTERVAL = 2;
+    static constexpr size_t BUFFER_SIZE = 2048;
+    static constexpr size_t MODEL_ALPHA_OFFSET = 0x17C;
+    static constexpr size_t MODEL_PTR_OFFSET = 0x34;
+    static constexpr size_t ALPHA_FLAG_OFFSET = 0x2C;
+
+private:
     static void Apply();
     static bool __fastcall ShouldObjectFadeIn(CGObject* _this, uint32_t unused);
     static void UpdateObjectVtable();
@@ -26,7 +38,7 @@ public:
     static void PackWoWTimeToDword(uint32_t* dword, WoWTime* time);
     static void UnpackWoWTime(uint32_t packedTime, int32_t* minute, int32_t* hour, int32_t* weekDay, int32_t* monthDay, int32_t* month, int32_t* year, int32_t* flags);
 
-    static char CGWorldFrame_Intersect(C3Vector* start, C3Vector* end, C3Vector* hitPoint, float* distance, uint32_t flag, uint32_t buffer);
+    static char __cdecl CGWorldFrame_Intersect(C3Vector* start, C3Vector* end, C3Vector* hitPoint, float* distance, uint32_t flag, uint32_t buffer);
     static char ModelsAlpha_CVarCallback(CVar* cvar, const char*, const char* value, const char*);
 
     friend class ClientExtensions;
