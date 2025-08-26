@@ -43,7 +43,7 @@ private:
     retval __fastcall name##Detour(void* self, void*, STRIP_PARENS parameters)
 
 #define CLIENT_DETOUR_THISCALL_NOARGS(name, addr, retval)                                      \
-    using name##_t       = retval(__fastcall*)(void* self);                \
+    using name##_t       = retval(__thiscall*)(void* self);                \
     inline name##_t name = reinterpret_cast<name##_t>(addr);                                        \
     retval __fastcall name##Detour(void* self, void*);                     \
     inline int name##__Result = ClientDetours::Add(#name, &name, name##Detour, __FILE__, __LINE__); \
