@@ -569,11 +569,36 @@ struct ZoneLightData {
     float maxY;
 };
 
+struct AuraData
+{
+    uint64_t creator;
+    uint32_t spellId;
+    byte flags;
+    byte level;
+    byte stackCount;
+    byte ukn;
+    int duration;
+    int endTime;
+};
+
 struct TerrainClickEvent
 {
     uint64_t GUID;
     float x, y, z;
     uint32_t button;
+};
+
+struct WoWClientDB
+{
+    void* funcTable;
+    int isLoaded;
+    int numRows;
+    int maxIndex;
+    int minIndex;
+    int stringTable;
+    void* funcTable2;
+    int* FirstRow;
+    int* Rows;
 };
 
 // client functions
@@ -592,6 +617,10 @@ namespace CGPetInfo_C {
 namespace CGUnit_C {
     CLIENT_FUNCTION(GetShapeshiftFormId, 0x71AF70, __thiscall, uint32_t, (CGUnit*))
     CLIENT_FUNCTION(HasAuraBySpellId, 0x7282A0, __thiscall, bool, (CGUnit*, uint32_t))
+    CLIENT_FUNCTION(GetAuraCount, 0x004F8850, __thiscall, int, (CGUnit*))
+    CLIENT_FUNCTION(GetAura, 0x00556E10, __thiscall, AuraData*, (CGUnit*, uint32_t))
+    CLIENT_FUNCTION(GetAuraFlags, 0x00565510, __thiscall, byte, (CGUnit*, uint32_t))
+    CLIENT_FUNCTION(AffectedByAura, 0x007283A0, __thiscall, char, (CGUnit*, uint32_t, uint32_t))
     CLIENT_FUNCTION(HasAuraMatchingSpellClass, 0x7283A0, __thiscall, bool, (CGUnit*, uint32_t, SpellRow*))
     CLIENT_FUNCTION(ShouldFadeIn, 0x716650, __thiscall, bool, (CGUnit*))
 }
