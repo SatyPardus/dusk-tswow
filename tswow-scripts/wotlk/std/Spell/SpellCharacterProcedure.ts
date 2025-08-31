@@ -201,9 +201,5 @@ export class SpellCharacterProcedures<T> extends CellSystem<T> {
 
 export function ARGBtoHex(R: float, G: float, B: float) : float {
     const Hex = `00${Math.round(R*255).toString(16).padStart(2, '0')}${Math.round(G*255).toString(16).padStart(2, '0')}${Math.round(B*255).toString(16).padStart(2, '0')}`
-    console.log(`Hex Value: `, Hex)
-    const Dec = parseInt(Hex, 16)
-    console.log(`Decimal Value: `, Dec)
-
-    return Dec
+    return parseInt(Hex, 16)
 }
