@@ -6,6 +6,30 @@ void Spells::Apply() {
     
 }
 
+CLIENT_DETOUR_THISCALL_NOARGS(MountedCombatAllowed, 0x00715F70, int)
+{
+    WoWClientDB* spellDB = reinterpret_cast<WoWClientDB*>(0x00AD49D0);
+    CGUnit* unit         = (CGUnit*)self;
+    SpellRow row{};
+
+    for (size_t i = 0; i < CGUnit_C::GetAuraCount(unit); i++)
+    {
+        AuraData* data = CGUnit_C::GetAura(unit, i);
+
+        if (ClientDB::GetLocalizedRow(spellDB, data->spellId, &row))
+        {
+            for (size_t i = 0; i < 3; i++)
+            {
+                if (row.m_effectAura[i] == 312) // 312 SPELL_AURA_COMBAT_MOUNT_ILLUSION
+                {
+                    return 1;
+                }
+            }
+        }
+    }
+    return MountedCombatAllowed(self);
+}
+
 CLIENT_DETOUR(CastSpell, 0x00540310, __cdecl, int, (lua_State* L))
 {
     if (!SStrCmpI(ClientLua::ToLString(L, 2, 0), "cursor", 6))
