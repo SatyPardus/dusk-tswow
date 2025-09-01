@@ -24,9 +24,9 @@ CLIENT_DETOUR_THISCALL_NOARGS(MountedCombatAllowed, 0x00715F70, int)
     CGUnit* unit         = (CGUnit*)self;
     SpellRow row{};
 
-    for (size_t i = 0; i < CGUnit_C::GetAuraCount(unit); i++)
+    for (size_t i = 0; i < unit->GetAuraCount(); i++)
     {
-        AuraData* data = CGUnit_C::GetAura(unit, i);
+        AuraData* data = unit->GetAura(i);
 
         if (ClientDB::GetLocalizedRow(spellDB, data->spellId, &row))
         {
@@ -57,7 +57,7 @@ CLIENT_DETOUR(CastSpell, 0x00540310, __cdecl, int, (lua_State* L))
         CGPlayer* activeObjectPtr = ClntObjMgr::GetActivePlayerObj();
         if (activeObjectPtr)
         {
-            C3Vector position = activeObjectPtr->unitBase.movementInfo->position;
+            C3Vector position = activeObjectPtr->movementInfo->position;
 
             TerrainClickEvent terrainClickEvent = {};
             terrainClickEvent.GUID              = 0;
@@ -154,7 +154,7 @@ CLIENT_DETOUR_THISCALL(GetLineSegment, 0x004F6450, int, (float a2, float a3, C3V
 
                 C3Vector point, pos, hitpoint;
                 float distance = 1.0f;
-                C3Vector playerPos = activeObjectPtr->unitBase.movementInfo->position;
+                C3Vector playerPos = activeObjectPtr->movementInfo->position;
 
                 bool shouldCheck = true;
 
@@ -183,10 +183,10 @@ CLIENT_DETOUR_THISCALL(GetLineSegment, 0x004F6450, int, (float a2, float a3, C3V
                 {
                     float mid = (left + right) * 0.5f;
                     point     = GetPointAtDistance(start, end, mid);
-                    pos       = {point.x, point.y, 0.0f};
+                    pos       = {point.x, point.y, point.z - 1000.0f};
                     distance  = 1.0f;
 
-                    float dist = CGUnit_C::GetDistanceToPos((CGUnit*)activeObjectPtr, &point);
+                    float dist    = activeObjectPtr->GetDistanceToPos(&point);
                     float minDist = maxDist * Spells::g_spell_min_clip_distance_percentage_cvar->m_numberValue;
 
                     if (dist > minDist * minDist &&
@@ -201,7 +201,7 @@ CLIENT_DETOUR_THISCALL(GetLineSegment, 0x004F6450, int, (float a2, float a3, C3V
 
                         if (*(int*)0x00AC79A4 == 0) // s_spellShadowStyle - 0 Is "Success"
                         {
-                            bestDist  = mid;
+                            bestDist  = dist;
                             bestPoint = point;
                             bestPos   = pos;
                             left      = mid;

@@ -7,20 +7,6 @@
 #include "WowClient/Entities/CGObject.h"
 #include "WowClient/Spells/AuraData.h"
 
-struct CGUnit;
-namespace CGUnit_C
-{
-    CLIENT_FUNCTION(GetShapeshiftFormId, 0x71AF70, __thiscall, uint32_t, (CGUnit*))
-    CLIENT_FUNCTION(HasAuraBySpellId, 0x7282A0, __thiscall, bool, (CGUnit*, uint32_t))
-    CLIENT_FUNCTION(GetAuraCount, 0x004F8850, __thiscall, int, (CGUnit*))
-    CLIENT_FUNCTION(GetAura, 0x00556E10, __thiscall, AuraData*, (CGUnit*, uint32_t))
-    CLIENT_FUNCTION(GetAuraFlags, 0x00565510, __thiscall, uint8_t, (CGUnit*, uint32_t))
-    CLIENT_FUNCTION(AffectedByAura, 0x007283A0, __thiscall, char, (CGUnit*, uint32_t, uint32_t))
-    CLIENT_FUNCTION(HasAuraMatchingSpellClass, 0x7283A0, __thiscall, bool, (CGUnit*, uint32_t, SpellRow*))
-    CLIENT_FUNCTION(ShouldFadeIn, 0x716650, __thiscall, bool, (CGUnit*))
-    CLIENT_FUNCTION(GetDistanceToPos, 0x004F61D0, __thiscall, float, (CGUnit*, C3Vector*))
-}
-
 struct UnitBytes0
 {
     uint8_t raceID;
@@ -137,4 +123,44 @@ class CGUnit : public CGObject
     uint32_t ukn5[4];
     uint32_t currentChannelId;
     uint32_t ukn7[350];
+
+    uint32_t GetShapeshiftFormId()
+    {
+        return ((uint32_t(__thiscall*)(CGUnit*))0x0071AF70)(this);
+    }
+
+    bool HasAuraBySpellId(uint32_t a2)
+    {
+        return ((bool(__thiscall*)(CGUnit*, uint32_t))0x007282A0)(this, a2);
+    }
+
+    int GetAuraCount()
+    {
+        return ((int(__thiscall*)(CGUnit*))0x004F8850)(this);
+    }
+
+    AuraData* GetAura(uint32_t a2)
+    {
+        return ((AuraData*(__thiscall*)(CGUnit*, uint32_t))0x00556E10)(this, a2);
+    }
+
+    uint8_t GetAuraFlags(uint32_t a2)
+    {
+        return ((uint8_t(__thiscall*)(CGUnit*, uint32_t))0x00565510)(this, a2);
+    }
+
+    bool HasAuraMatchingSpellClass(uint32_t a2, SpellRow* a3)
+    {
+        return ((bool(__thiscall*)(CGUnit*, uint32_t, SpellRow*))0x007283A0)(this, a2, a3);
+    }
+
+    bool ShouldFadeIn()
+    {
+        return ((bool(__thiscall*)(CGUnit*))0x00716650)(this);
+    }
+
+    float GetDistanceToPos(C3Vector* a2)
+    {
+        return ((float(__thiscall*)(CGUnit*, C3Vector*))0x004F61D0)(this, a2);
+    }
 };

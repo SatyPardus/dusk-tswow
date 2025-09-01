@@ -63,7 +63,6 @@ struct PlayerFields
 class CGPlayer : public CGUnit
 {
   public:
-    CGUnit unitBase;
     PlayerFields* PlayerData;
     uint32_t playerClass[1024];
 };

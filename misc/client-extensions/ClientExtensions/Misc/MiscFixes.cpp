@@ -143,7 +143,7 @@ bool MiscFixes::ShouldObjectFadeIn(CGObject* _this, uint32_t unused) {
     uint32_t type = _this->ObjectData->OBJECT_FIELD_TYPE;
 
     if (type == TYPEMASK_UNIT)
-        return CGUnit_C::ShouldFadeIn(reinterpret_cast<CGUnit*>(_this));
+        return reinterpret_cast<CGUnit*>(_this)->ShouldFadeIn();
     else
         return 1;
 }
