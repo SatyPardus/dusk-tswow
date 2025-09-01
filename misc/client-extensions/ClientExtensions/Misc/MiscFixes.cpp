@@ -47,7 +47,8 @@ char __cdecl MiscFixes::CGWorldFrame_Intersect(C3Vector* start, C3Vector* end, C
     alignas(8) char stackBuf[BUFFER_SIZE] = {};
     void* buf = stackBuf;
     MiscFixes::g_models_collision_check = true;
-    if (CGWorldFrame::Intersect(start, end, hitPoint, distance, flag + 1, reinterpret_cast<uintptr_t>(buf))) {
+    if (CGWorldFrame_C::Intersect(start, end, hitPoint, distance, flag + 1, reinterpret_cast<uintptr_t>(buf)))
+    {
         const uint32_t type = *reinterpret_cast<const uint32_t*>(buf);
         const uint32_t count = *reinterpret_cast<const uint32_t*>(static_cast<const uint8_t*>(buf) + 4);
 
@@ -93,7 +94,7 @@ char __cdecl MiscFixes::CGWorldFrame_Intersect(C3Vector* start, C3Vector* end, C
     }
 
     // Remove M2 camera collisions for object fading
-    return CGWorldFrame::Intersect(start, end, hitPoint, distance, flag & ~1u, buffer);
+    return CGWorldFrame_C::Intersect(start, end, hitPoint, distance, flag & ~1u, buffer);
 }
 
 void MiscFixes::UpdateObjectVtable() {
