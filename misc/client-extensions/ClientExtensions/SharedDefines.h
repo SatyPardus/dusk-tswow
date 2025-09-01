@@ -612,6 +612,83 @@ struct WoWClientDB
     int* Rows;
 };
 
+struct TSLink
+{
+    TSLink* m_prevlink;
+    void* m_next;
+};
+
+struct TSList
+{
+    ptrdiff_t m_linkoffset;
+    TSLink m_terminator;
+};
+
+struct RCString
+{
+    void** vtable;
+    DWORD ukn1;
+    char* string;
+};
+
+struct CVar;
+typedef char(__cdecl* CVarCallback)(CVar*, const char*, const char*, const char*);
+struct CVar
+{
+    DWORD pad[0x18];
+    DWORD m_category;
+    DWORD m_flags;
+    RCString m_stringValue;
+    float m_numberValue;
+    int m_intValue;
+    int m_modified;
+    RCString m_defaultValue;
+    RCString m_resetValue;
+    RCString m_latchedValue;
+    RCString m_help;
+    CVarCallback m_callback;
+    void* m_arg;
+};
+
+struct WorldHitTest
+{
+    uint64_t guid;
+    C3Vector hitpoint;
+    float distance;
+    C3Vector start;
+    C3Vector end;
+};
+
+struct CSimpleTop
+{
+    char pad1[0x78];
+    void* mouseFocus;
+    char pad2[0x11A8];
+    C2Vector mousePosition;
+};
+
+struct CGWorldFrame
+{
+    char pad1[0xA0];
+    CSimpleTop* simpleTop;
+    char pad2[0x234];
+    uint32_t ukn16;
+    uint32_t ukn17;
+    WorldHitTest m_actionHitTest;
+};
+
+struct PendingSpellCastData
+{
+    char pad0[0x18];
+    uint32_t spellId;
+};
+
+struct PendingSpellCast
+{
+    char pad0[0x8];
+    PendingSpellCastData data;
+};
+
 // client functions
 namespace CGChat {
     CLIENT_FUNCTION(AddChatMessage, 0x509DD0, __cdecl, bool, (char*, uint32_t, uint32_t, uint32_t, uint32_t*, uint32_t, char*, uint64_t, uint32_t, uint64_t, uint32_t, uint32_t, uint32_t*))
@@ -634,10 +711,12 @@ namespace CGUnit_C {
     CLIENT_FUNCTION(AffectedByAura, 0x007283A0, __thiscall, char, (CGUnit*, uint32_t, uint32_t))
     CLIENT_FUNCTION(HasAuraMatchingSpellClass, 0x7283A0, __thiscall, bool, (CGUnit*, uint32_t, SpellRow*))
     CLIENT_FUNCTION(ShouldFadeIn, 0x716650, __thiscall, bool, (CGUnit*))
+    CLIENT_FUNCTION(GetDistanceToPos, 0x004F61D0, __thiscall, float, (CGUnit*, C3Vector*))
 }
 
-namespace CGWorldFrame {
+namespace CGWorldFrame_C {
     CLIENT_FUNCTION(TranslateToMapCoords, 0x544140, __cdecl, bool, (C3Vector*, uint32_t, float*, float*, uint32_t, bool, uint32_t))
+    CLIENT_FUNCTION(Intersect, 0x0077F310, __cdecl, char, (C3Vector*, C3Vector*, C3Vector*, float*, int, int))
 }
 
 namespace ClientDB {
@@ -658,6 +737,7 @@ namespace ClntObjMgr {
 
 namespace CVar_C {
     CLIENT_FUNCTION(sub_766940, 0x766940, __thiscall, void, (void*, int, char, char, char, char))
+    CLIENT_FUNCTION(Register, 0x00767FC0, __cdecl, CVar*, (char*, char*, int, char*, CVarCallback, int, char, int, char))
 }
 
 namespace DNInfo {
@@ -681,6 +761,10 @@ namespace SpellParser {
 
 namespace Spell_C {
     CLIENT_FUNCTION(SpellFailed, 0x808200, __cdecl, void, (void*, SpellRow*, uint32_t, int32_t, int32_t, uint32_t))
+    CLIENT_FUNCTION(IsTargeting, 0x007FD620, __cdecl, bool, ())
+    CLIENT_FUNCTION(CanTargetTerrain, 0x007FD750, __cdecl, bool, ())
+    CLIENT_FUNCTION(CanTargetUnits, 0x007FD650, __cdecl, bool, ())
+    CLIENT_FUNCTION(GetSpellRange, 0x00802C30, __cdecl, void, (void* a1, unsigned int spellId, float* minDist, float* maxDist, void* a5))
 }
 
 namespace SpellRec_C {
@@ -734,3 +818,4 @@ CLIENT_FUNCTION(sub_6E22C0, 0x6E22C0, __thiscall, uint32_t, (void*, uint32_t))
 CLIENT_FUNCTION(sub_812410, 0x812410, __cdecl, SkillLineAbilityRow*, (uint32_t, uint32_t, uint32_t))
 CLIENT_FUNCTION(TerrainClick, 0x00527830, __cdecl, void, (TerrainClickEvent*))
 CLIENT_FUNCTION(SStrCmpI, 0x0076E780, __stdcall, int, (char* text1, const char* text2, int length))
+CLIENT_FUNCTION(TraceLine, 0x007A3B70, __cdecl, char, (C3Vector* start, C3Vector* end, C3Vector* hitPoint, float* distance, uint32_t flag, uint32_t optional))
