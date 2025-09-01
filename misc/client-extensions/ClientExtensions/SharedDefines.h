@@ -601,6 +601,44 @@ struct WoWClientDB
     int* Rows;
 };
 
+struct TSLink
+{
+    TSLink* m_prevlink;
+    void* m_next;
+};
+
+struct TSList
+{
+    ptrdiff_t m_linkoffset;
+    TSLink m_terminator;
+};
+
+struct RCString
+{
+    void** vtable;
+    DWORD ukn1;
+    char* string;
+};
+
+struct CVar;
+typedef char(__cdecl* CVarCallback)(CVar*, const char*, const char*, const char*);
+struct CVar
+{
+    DWORD pad[0x18];
+    DWORD m_category;
+    DWORD m_flags;
+    RCString m_stringValue;
+    float m_numberValue;
+    int m_intValue;
+    int m_modified;
+    RCString m_defaultValue;
+    RCString m_resetValue;
+    RCString m_latchedValue;
+    RCString m_help;
+    CVarCallback m_callback;
+    void* m_arg;
+};
+
 // client functions
 namespace CGChat {
     CLIENT_FUNCTION(AddChatMessage, 0x509DD0, __cdecl, bool, (char*, uint32_t, uint32_t, uint32_t, uint32_t*, uint32_t, char*, uint64_t, uint32_t, uint64_t, uint32_t, uint32_t, uint32_t*))
@@ -627,6 +665,7 @@ namespace CGUnit_C {
 
 namespace CGWorldFrame {
     CLIENT_FUNCTION(TranslateToMapCoords, 0x544140, __cdecl, bool, (C3Vector*, uint32_t, float*, float*, uint32_t, bool, uint32_t))
+    CLIENT_FUNCTION(Intersect, 0x0077F310, __cdecl, char, (C3Vector*, C3Vector*, C3Vector*, float*, int, int))
 }
 
 namespace ClientDB {
@@ -647,6 +686,7 @@ namespace ClntObjMgr {
 
 namespace CVar_C {
     CLIENT_FUNCTION(sub_766940, 0x766940, __thiscall, void, (void*, int, char, char, char, char))
+    CLIENT_FUNCTION(Register, 0x00767FC0, __cdecl, CVar*, (char*, char*, int, char*, CVarCallback, int, char, int, char))
 }
 
 namespace DNInfo {
