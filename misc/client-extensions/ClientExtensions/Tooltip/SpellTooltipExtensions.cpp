@@ -384,7 +384,7 @@ void TooltipExtensions::SetSpellCooldownTooltip(char* dest, SpellRow* spell, uin
     }
 
     void* ptr = reinterpret_cast<void*>(0xAD2D30);
-    sub_61FEC0(_this, dest, src, ptr, ptr, 0);
+    CGTooltip::AddLine(_this, dest, src, ptr, ptr, 0);
 }
 
 void TooltipExtensions::SpellTooltipRemainingCooldownExtension() {
@@ -426,6 +426,6 @@ void TooltipExtensions::SetSpellRemainingCooldownTooltip(char* dest, SpellRow* s
 
     if (recoveryTime) {
         CGTooltip::GetDurationString(dest, 128, recoveryTime, "ITEM_COOLDOWN_TIME", 0, 1, 0);
-        sub_61FEC0(_this, dest, 0, ptr, ptr, 0);
+        CGTooltip::AddLine(_this, dest, 0, ptr, ptr, 0);
     }
 }

@@ -47,7 +47,7 @@ void CharacterExtensions::SpellUnlearnExtension() {
 }
 
 uint32_t CharacterExtensions::CheckLFGRoles(uint32_t roles) {
-    uint32_t classId = sub_6B1080();
+    uint32_t classId = ClientServices::GetCharacterClass();
 
     if (classId > *reinterpret_cast<uint32_t*>(0xAD3410) || classId < *reinterpret_cast<uint32_t*>(0xAD3414)) // ChrClasses.dbc max/min indexes
         classId = 0;
@@ -64,7 +64,7 @@ uint32_t CharacterExtensions::GetClassRoles(uint32_t classId) {
 }
 
 int CharacterExtensions::Lua_GetAvailableRoles(lua_State* L) {
-    ChrClassesRow* row = reinterpret_cast<ChrClassesRow*>(ClientDB::GetRow(reinterpret_cast<void*>(0xAD341C), sub_6B1080()));
+    ChrClassesRow* row = reinterpret_cast<ChrClassesRow*>(ClientDB::GetRow(reinterpret_cast<void*>(0xAD341C), ClientServices::GetCharacterClass()));
     uint32_t classId = 0;
     LFGRolesRow* cdbcRole = 0;
 
@@ -80,7 +80,7 @@ int CharacterExtensions::Lua_GetAvailableRoles(lua_State* L) {
 }
 
 int CharacterExtensions::Lua_SetLFGRole(lua_State* L) {
-    ChrClassesRow* row = reinterpret_cast<ChrClassesRow*>(ClientDB::GetRow(reinterpret_cast<void*>(0xAD341C), sub_6B1080()));
+    ChrClassesRow* row = reinterpret_cast<ChrClassesRow*>(ClientDB::GetRow(reinterpret_cast<void*>(0xAD341C), ClientServices::GetCharacterClass()));
     LFGRolesRow* cdbcRole = 0;
     uint32_t roles = FrameScript::GetParam(L, 1, 0) != 0;
     uint32_t classId = 0;
