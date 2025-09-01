@@ -707,15 +707,15 @@ export class AuraType extends EnumCellTransform<SpellEffect> {
     /** Enum value:                                               340 */
     get KNOCKBACK_IMMUNITY()                        { return this.value(340, x=>x) }
     /** Enum value:                                               341 */
-    get ADD_MASTERY_PCT_TO_SPELL_EFFECT()           { return this.value(341, x=>x) }
+    get UNU341()                                    { return this.value(341, x=>x) }
     /** Enum value:                                               342 */
     get MOD_RATING_FROM_ALL_SOURCES_BY_PCT()        { return this.value(342, x=>x) }
     /** Enum value:                                               343 */
     get MOD_RECOVERY_RATE()                         { return this.value(343, x=>x) }
     /** Enum value:                                               344 */
-    get ADD_MASTERY_RATING_TO_SPELL_EFFECT()        { return this.value(344, x=>x) }
+    get UNU344()                                    { return this.value(344, x=>x) }
     /** Enum value:                                               345 */
-    get MOD_REMOVE_AURA()                           { return this.value(345, x=>x) }
+    get UNU345()                                    { return this.value(345, x=>x) }
     /** Enum value:                                               346 */
     get CAN_DOUBLE_JUMP()                           { return this.value(346, x=>x) }
     /** Enum value:                                               347 */
@@ -727,13 +727,15 @@ export class AuraType extends EnumCellTransform<SpellEffect> {
     /** Enum value:                                               350 */
     get MOD_TAXI_FLIGHT_SPEED()                     { return this.value(350, x=>x) }
     /** Enum value:                                               351 */
-    get MOD_FORGE_STAT()                            { return this.value(351, x=>x) }
+    get UNU351()                                    { return this.value(351, x=>x) }
     /** Enum value:                                               352 */
     get MOD_RESTED_XP_MAX_AMOUNT()                  { return this.value(352, x=>x) }
     /** Enum value:                                               353 */
     get MOD_RESTED_XP_RECOVERY_RATE()               { return this.value(353, x=>x) }
     /** Enum value:                                               354 */
-    get oldMOD_CHANGE_DAMAGE_SCHOOL_OF_SPELL()         { return this.value(354, x=>x) }
+    get MOD_MANA_OR_HEALTH_FROM_STAT_PERCENT()      { return this.value(354, x=>x) }
     /** Enum value:                                               355 */
-    get ADD_COMBAT_RATING_PCT_TO_SPELL_EFFECT()     { return this.value(355, x=>x) }
+    get UNU355()                                    { return this.value(355, x=>x) }
+    /** Enum value:                                               356 */
+    get UNU356()                                    { return this.value(356, x=>x) }
 }

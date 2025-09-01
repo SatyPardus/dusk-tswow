@@ -1399,3 +1399,12 @@ void TSCreature::ExtendDurationIfAble(uint32_t amount) {
     if (auto temp = creature->ToTempSummon())
         temp->ExtendDuration(amount);
 }
+
+uint32 TSCreature::GetFirstSpell() {
+    return creature->m_spells[0];
+}
+
+void TSCreature::DoSpellAttackIfReady(uint32 spell) {
+    if (auto ai = creature->AI())
+        ai->DoSpellAttackIfReady(spell);
+}

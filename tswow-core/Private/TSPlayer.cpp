@@ -1078,9 +1078,9 @@ TSNumber<uint16> TSPlayer::GetMaxSkillValue(uint32 skill)
  *
  * @return float bonus
  */
-TSNumber<float> TSPlayer::GetManaBonusFromIntellect()
+TSNumber<float> TSPlayer::GetManaBonusFromStats()
 {
-    return player->GetManaBonusFromIntellect();
+    return player->GetManaBonusFromStats();
 }
 
 /**
@@ -1088,9 +1088,9 @@ TSNumber<float> TSPlayer::GetManaBonusFromIntellect()
  *
  * @return float bonus
  */
-TSNumber<float> TSPlayer::GetHealthBonusFromStamina()
+TSNumber<float> TSPlayer::GetHealthBonusFromStats()
 {
-    return player->GetHealthBonusFromStamina();
+    return player->GetHealthBonusFromStats();
 }
 
 /** 
