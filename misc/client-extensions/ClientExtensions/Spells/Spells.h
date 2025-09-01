@@ -5,6 +5,7 @@
 #include <unordered_set>
 #include <cmath>
 #include <algorithm>
+#include "WowClient/CVar.h"
 
 class Spells {
   public:

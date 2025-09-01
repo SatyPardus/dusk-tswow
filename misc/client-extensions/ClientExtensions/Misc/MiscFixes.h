@@ -1,6 +1,8 @@
 #pragma once
 
 #include "SharedDefines.h"
+#include "WowClient/CVar.h"
+#include "WowClient/Entities/CGObject.h"
 #include <unordered_map>
 #include <unordered_set>
 #include <cmath>

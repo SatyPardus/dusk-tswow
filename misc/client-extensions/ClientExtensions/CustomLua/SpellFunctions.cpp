@@ -3,6 +3,9 @@
 #include "CDBCMgr/CDBCMgr.h"
 #include "CDBCMgr/CDBCDefs/SpellAdditionalAttributes.h"
 #include "Logger.h"
+#include "ClientFunctions.h"
+#include "WowClient/Enums/SpellAttributes.h"
+#include "WowClient/DBC/SpellIconRow.h"
 
 LUA_FUNCTION(GetSpellDescription, (lua_State* L)) {
     if (ClientLua::IsNumber(L, 1)) {

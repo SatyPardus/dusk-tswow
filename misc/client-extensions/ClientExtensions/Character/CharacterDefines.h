@@ -1,5 +1,6 @@
 #pragma once
 #include "SharedDefines.h"
+#include "WowClient/Entities/CGPlayer.h"
 
 #include <iostream>
 
@@ -39,12 +40,19 @@ namespace CharacterDefines {
     inline float GetTotalAttackPowerValue(uint8_t attType, CGPlayer* activePlayer) {
         float value = 0.0f;
         if (attType == 2) {
-            float ap = std::max<float>(activePlayer->PlayerData->weaponBonusAP[attType], activePlayer->PlayerData->weaponBonusAP[0]) + activePlayer->unitBase.unitData->RAP + activePlayer->unitBase.unitData->RAPMods[0] + activePlayer->unitBase.unitData->RAPMods[1];
+            float ap = std::max<float>(
+                activePlayer->PlayerData->weaponBonusAP[attType],
+                activePlayer->PlayerData->weaponBonusAP[0]) +
+                    activePlayer->unitBase.unitData->UNIT_FIELD_RANGED_ATTACK_POWER +
+                    activePlayer->unitBase.unitData->UNIT_FIELD_RANGED_ATTACK_POWER_MODS[0] +
+                    activePlayer->unitBase.unitData->UNIT_FIELD_RANGED_ATTACK_POWER_MODS[1];
             if (ap < 0)
                 ap = 0;
-            value = ap * (1.0f + activePlayer->unitBase.unitData->RAPMult);
+            value = ap * (1.0f + activePlayer->unitBase.unitData->UNIT_FIELD_RANGED_ATTACK_POWER_MULTIPLIER);
         } else {
-            float ap = activePlayer->unitBase.unitData->AP + activePlayer->unitBase.unitData->APMods[0] + activePlayer->unitBase.unitData->APMods[1];
+            float ap = activePlayer->unitBase.unitData->UNIT_FIELD_ATTACK_POWER +
+                       activePlayer->unitBase.unitData->UNIT_FIELD_ATTACK_POWER_MODS[0] +
+                       activePlayer->unitBase.unitData->UNIT_FIELD_ATTACK_POWER_MODS[1];
             if (attType == 0)
                 ap += std::max<float>(activePlayer->PlayerData->weaponBonusAP[attType], activePlayer->PlayerData->weaponBonusAP[2]);
             else {
@@ -53,7 +61,7 @@ namespace CharacterDefines {
             }
             if (ap < 0)
                 ap = 0;
-            value = ap * (1.0f + activePlayer->unitBase.unitData->APMult);
+            value = ap * (1.0f + activePlayer->unitBase.unitData->UNIT_FIELD_ATTACK_POWER_MULTIPLIER);
         }
         return value;
     }

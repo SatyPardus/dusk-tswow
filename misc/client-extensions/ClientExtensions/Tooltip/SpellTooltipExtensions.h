@@ -1,5 +1,9 @@
 #pragma once
 #include "TooltipDefines.h"
+#include "ClientMacros.h"
+#include "WowClient/DBC/SpellRow.h"
+#include "WowClient/DBC/SpellRuneCostRow.h"
+#include "WowClient/DBC/PowerDisplayRow.h"
 
 namespace CFormula {
     CLIENT_FUNCTION(GetVariableValue, 0x5782D0, __thiscall, int, (void*, uint32_t, uint32_t, SpellRow*, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t))

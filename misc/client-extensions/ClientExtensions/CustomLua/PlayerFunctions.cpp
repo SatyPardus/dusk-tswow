@@ -1,6 +1,9 @@
 #include "ClientLua.h"
 #include "Character/CharacterExtensions.h"
 #include "Logger.h"
+#include "WowClient/Entities/CGPlayer.h"
+#include "WowClient/Enums/ObjectTypeMask.h"
+#include "ClientFunctions.h"
 
 LUA_FUNCTION(GetShapeshiftFormID, (lua_State* L)) {
     uint64_t activePlayer = ClntObjMgr::GetActivePlayer();
@@ -97,7 +100,7 @@ LUA_FUNCTION(GetCombatRatingMult, (lua_State* L)) {
 
     if (activePlayer) {
         CGPlayer* activeObjectPtr = reinterpret_cast<CGPlayer*>(ClntObjMgr::ObjectPtr(activePlayer, TYPEMASK_UNIT));
-        uint32_t level = activeObjectPtr->unitBase.unitData->level;
+        uint32_t level = activeObjectPtr->unitBase.unitData->UNIT_FIELD_LEVEL;
         gtCombatRatingsRow* row = reinterpret_cast<gtCombatRatingsRow*>(ClientDB::GetRow(reinterpret_cast<void*>(0xAD3B48), (rating - 1) * 100 + level));
         value = row->data;
     }
@@ -113,7 +116,7 @@ LUA_FUNCTION(GetCombatRatingScalar, (lua_State* L)) {
 
     if (activePlayer) {
         CGPlayer* activeObjectPtr = reinterpret_cast<CGPlayer*>(ClntObjMgr::ObjectPtr(activePlayer, TYPEMASK_UNIT));
-        uint32_t classID = activeObjectPtr->unitBase.unitData->unitBytes0.classID;
+        uint32_t classID = activeObjectPtr->unitBase.unitData->UNIT_FIELD_BYTES_0.classID;
         gtOCTClassCombatRatingScalarRow* row = reinterpret_cast<gtOCTClassCombatRatingScalarRow*>(ClientDB::GetRow(reinterpret_cast<void*>(0xAD3C20), (classID - 1) * 32 + rating));
         value = row->data;
     }
@@ -126,7 +129,7 @@ LUA_FUNCTION(GetModCastSpeed, (lua_State* L)) {
     CGPlayer* activeObjectPtr = reinterpret_cast<CGPlayer*>(ClntObjMgr::ObjectPtr(ClntObjMgr::GetActivePlayer(), TYPEMASK_UNIT));
 
     if (activeObjectPtr)
-        ClientLua::PushNumber(L, activeObjectPtr->unitBase.unitData->modCastSpell);
+        ClientLua::PushNumber(L, activeObjectPtr->unitBase.unitData->UNIT_MOD_CAST_SPEED);
     else
         ClientLua::PushNumber(L, 0.f);
 

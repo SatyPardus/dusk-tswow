@@ -7,6 +7,12 @@
 #include "windows.h"
 #include "Logger.h"
 #include <algorithm>
+#include "ClientFunctions.h"
+#include "WowClient/Enums/SpellAttributes.h"
+#include "WowClient/Enums/SpellSchools.h"
+#include "WowClient/Enums/SpellEffect.h"
+#include "WowClient/Enums/SpellFamilyNames.h"
+#include "WowClient/Enums/ObjectTypeMask.h"
 
 void TooltipExtensions::Apply() {
     SpellTooltipVariableExtension();
@@ -98,19 +104,19 @@ int TooltipExtensions::GetVariableValueEx(void* _this, uint32_t edx, uint32_t sp
             // Arrays for current and max power fields
             if (spellVariable >= SPELLVARIABLE_power1 && spellVariable <= SPELLVARIABLE_power7) {
                 uint32_t var = spellVariable - SPELLVARIABLE_power1;
-                value = static_cast<float>(activePlayer->unitBase.unitData->unitCurrPowers[var]);
+                value = static_cast<float>(activePlayer->unitBase.unitData->UNIT_FIELD_POWERS[var]);
             }
             else if (spellVariable >= SPELLVARIABLE_POWER1 && spellVariable <= SPELLVARIABLE_POWER7) {
                 uint32_t var = spellVariable - SPELLVARIABLE_POWER1;
-                value = static_cast<float>(activePlayer->unitBase.unitData->unitMaxPowers[var]);
+                value = static_cast<float>(activePlayer->unitBase.unitData->UNIT_FIELD_MAXPOWERS[var]);
             }
             else {
                 switch (spellVariable) {
                     case SPELLVARIABLE_hp:
-                        value = static_cast<float>(activePlayer->unitBase.unitData->unitCurrHealth);
+                        value = static_cast<float>(activePlayer->unitBase.unitData->UNIT_FIELD_HEALTH);
                         break;
                     case SPELLVARIABLE_HP:
-                        value = static_cast<float>(activePlayer->unitBase.unitData->unitMaxHealth);
+                        value = static_cast<float>(activePlayer->unitBase.unitData->UNIT_FIELD_MAXHEALTH);
                         break;
                     case SPELLVARIABLE_ppl1:
                         value = spell->m_effectRealPointsPerLevel[0];
@@ -122,13 +128,13 @@ int TooltipExtensions::GetVariableValueEx(void* _this, uint32_t edx, uint32_t sp
                         value = spell->m_effectRealPointsPerLevel[2];
                         break;
                     case SPELLVARIABLE_PPL1:
-                        value = spell->m_effectRealPointsPerLevel[0] * activePlayer->unitBase.unitData->level;
+                        value = spell->m_effectRealPointsPerLevel[0] * activePlayer->unitBase.unitData->UNIT_FIELD_LEVEL;
                         break;
                     case SPELLVARIABLE_PPL2:
-                        value = spell->m_effectRealPointsPerLevel[1] * activePlayer->unitBase.unitData->level;
+                        value = spell->m_effectRealPointsPerLevel[1] * activePlayer->unitBase.unitData->UNIT_FIELD_LEVEL;
                         break;
                     case SPELLVARIABLE_PPL3:
-                        value = spell->m_effectRealPointsPerLevel[2] * activePlayer->unitBase.unitData->level;
+                        value = spell->m_effectRealPointsPerLevel[2] * activePlayer->unitBase.unitData->UNIT_FIELD_LEVEL;
                         break;
                     case SPELLVARIABLE_mastery1:
                         value = CharacterDefines::getMasteryForSpec(0);
@@ -157,7 +163,7 @@ int TooltipExtensions::GetVariableValueEx(void* _this, uint32_t edx, uint32_t sp
                         float bv = 0.0;
                         GetSpellScalarsForEffect(spell->m_ID, 0, ap, sp, bv);
                         value = ApplyScalarsForPlayer(activePlayer, spell, 0, ap, sp, bv);
-                        value += spell->m_effectRealPointsPerLevel[0] * activePlayer->unitBase.unitData->level;
+                        value += spell->m_effectRealPointsPerLevel[0] * activePlayer->unitBase.unitData->UNIT_FIELD_LEVEL;
                     } break;
                     case SPELLVARIABLE_bon2: {
                         float ap = 0.0;
@@ -165,7 +171,7 @@ int TooltipExtensions::GetVariableValueEx(void* _this, uint32_t edx, uint32_t sp
                         float bv = 0.0;
                         GetSpellScalarsForEffect(spell->m_ID, 1, ap, sp, bv);
                         value = ApplyScalarsForPlayer(activePlayer, spell, 1, ap, sp, bv);
-                        value += spell->m_effectRealPointsPerLevel[1] * activePlayer->unitBase.unitData->level;
+                        value += spell->m_effectRealPointsPerLevel[1] * activePlayer->unitBase.unitData->UNIT_FIELD_LEVEL;
                     }
                     break;
                     case SPELLVARIABLE_bon3: {
@@ -174,7 +180,7 @@ int TooltipExtensions::GetVariableValueEx(void* _this, uint32_t edx, uint32_t sp
                         float bv = 0.0;
                         GetSpellScalarsForEffect(spell->m_ID, 2, ap, sp, bv);
                         value = ApplyScalarsForPlayer(activePlayer, spell, 2, ap, sp, bv);
-                        value += spell->m_effectRealPointsPerLevel[2] * activePlayer->unitBase.unitData->level;
+                        value += spell->m_effectRealPointsPerLevel[2] * activePlayer->unitBase.unitData->UNIT_FIELD_LEVEL;
                     }
                     break;
                     default:

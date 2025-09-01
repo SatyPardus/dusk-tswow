@@ -1,6 +1,9 @@
 #include "Spells.h"
 #include "ClientDetours.h"
 #include "ClientLua.h"
+#include "ClientFunctions.h"
+#include "WowClient/DBC/WoWClientDB.h"
+#include "WowClient/Spells/Spell.h"
 
 void Spells::Apply() {
     g_spell_min_clip_distance_percentage_cvar = CVar_C::Register("spellMinClipDistancePercentage", "Sets the minimum distance the clipping needs to be to activate", 1, "0.0", SpellMinClipDistancePercentage_CVarCallback, 5, 0, 0, 0);

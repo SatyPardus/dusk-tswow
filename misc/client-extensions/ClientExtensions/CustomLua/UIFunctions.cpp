@@ -2,6 +2,8 @@
 #include "ClientDetours.h"
 #include "SharedDefines.h"
 #include "Logger.h"
+#include "ClientFunctions.h"
+#include "WowClient/Enums/FrameXMLEvent.h"
 
 LUA_FUNCTION(FireActionBarSlotUpdateEvent, (lua_State* L)) {
     uint8_t slotID = ClientLua::GetNumber(L, 1);

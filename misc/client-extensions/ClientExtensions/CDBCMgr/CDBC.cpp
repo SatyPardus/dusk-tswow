@@ -1,5 +1,6 @@
 #include "CDBC.h"
 #include "Logger.h"
+#include "ClientFunctions.h"
 
 CDBC* CDBC::LoadDB(const char* name) {
     uint32_t Buffer = 0;

@@ -1,7 +1,9 @@
 #include "ClientLua.h"
-#include "SharedDefines.h"
+#include "ClientFunctions.h"
+#include "WowClient/World.h"
+#include "WowClient/Enums/ObjectTypeMask.h"
+#include "WowClient/DBC/MapRow.h"
 #include "Logger.h"
-#include "CVar.cpp"
 #include <string>
 
 struct WorldFrame;
@@ -51,7 +53,7 @@ LUA_FUNCTION(ReloadMap, (lua_State* L)) {
 
         if (activePlayer) {
             MapRow* row = 0;
-            int32_t mapId = *reinterpret_cast<uint32_t*>(0xBD088C);
+            int32_t mapId = World_C::getMapId();
             CGUnit* activeObjectPtr = reinterpret_cast<CGUnit*>(ClntObjMgr::ObjectPtr(activePlayer, TYPEMASK_UNIT));
             MovementInfo* moveInfo = activeObjectPtr->movementInfo;
 
@@ -59,8 +61,8 @@ LUA_FUNCTION(ReloadMap, (lua_State* L)) {
                 row = reinterpret_cast<MapRow*>(ClientDB::GetRow(reinterpret_cast<void*>(0xAD4178), mapId));
 
                 if (row) {
-                    World::UnloadMap();
-                    World::LoadMap(row->m_Directory, &moveInfo->position, mapId);
+                    World_C::UnloadMap();
+                    World_C::LoadMap(row->m_Directory, &moveInfo->position, mapId);
 
                     SStr::Printf(buffer, 512, "Map ID: %d (Directory: \"%s\", x: %f, y: %f, z: %f) reloaded.", mapId, row->m_Directory, moveInfo->position.x, moveInfo->position.y, moveInfo->position.z);
                 }

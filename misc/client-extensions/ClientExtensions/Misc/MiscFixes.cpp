@@ -1,6 +1,8 @@
 #include "MiscFixes.h"
 #include "ClientDetours.h"
 #include "Logger.h"
+#include "ClientFunctions.h"
+#include "WowClient/Enums/ObjectTypeMask.h"
 
 void MiscFixes::Apply() {
     UpdateObjectVtable();

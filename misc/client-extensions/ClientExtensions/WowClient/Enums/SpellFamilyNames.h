@@ -1,0 +1,21 @@
+#pragma once
+
+enum SpellFamilyNames : uint32_t
+{
+    SPELLFAMILY_GENERIC     = 0,
+    SPELLFAMILY_UNK1        = 1,
+    SPELLFAMILY_CRAFTING    = 2,
+    SPELLFAMILY_MAGE        = 3,
+    SPELLFAMILY_WARRIOR     = 4,
+    SPELLFAMILY_WARLOCK     = 5,
+    SPELLFAMILY_PRIEST      = 6,
+    SPELLFAMILY_DRUID       = 7,
+    SPELLFAMILY_ROGUE       = 8,
+    SPELLFAMILY_HUNTER      = 9,
+    SPELLFAMILY_PALADIN     = 10,
+    SPELLFAMILY_SHAMAN      = 11,
+    SPELLFAMILY_UNK2        = 12,
+    SPELLFAMILY_POTION      = 13,
+    SPELLFAMILY_DEATHKNIGHT = 15,
+    SPELLFAMILY_PET         = 17,
+};

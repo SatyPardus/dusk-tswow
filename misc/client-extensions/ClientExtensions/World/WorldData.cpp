@@ -4,6 +4,8 @@
 #include "CDBCMgr/CDBCDefs/OcclusionVolume.h"
 #include "CDBCMgr/CDBCDefs/OcclusionVolumePoint.h"
 #include "Logger.h"
+#include "WowClient/World.h"
+#include "ClientFunctions.h"
 
 void WorldDataExtensions::Apply() {
     // calls nullsub_3 instead of original function
@@ -154,7 +156,7 @@ void WorldDataExtensions::FillZoneLightData() {
 void WorldDataExtensions::FindAndAddZoneLightEx(C3Vector* vec) {
     ZoneLightData data = { 0 };
     void* g_dnInfo = DNInfo::GetDNInfoPtr();
-    int32_t currentMap = *reinterpret_cast<int32_t*>(0xADFBC4);
+    int32_t currentMap = World_C::getMapId();
     C2Vector vec2d = { 0 };
 
     if (!GlobalZoneLightData.size())

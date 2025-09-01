@@ -1,8 +1,14 @@
 #include "CharacterExtensions.h"
+#include "ClientFunctions.h"
 #include "CDBCMgr/CDBCMgr.h"
 #include "CDBCMgr/CDBCDefs/LFGRoles.h"
 #include "CDBCMgr/CDBCDefs/SpellAdditionalAttributes.h"
 #include "Logger.h"
+#include "WowClient/CVar.h"
+#include "WowClient/Enums/SpellAttributes.h"
+#include "WowClient/Enums/FrameXMLEvent.h"
+#include "WowClient/Enums/GameError.h"
+#include "WowClient/DBC/ChrClassesRow.h"
 
 void CharacterExtensions::Apply() {
     ChangeLFGRoleFunctionPointers();
@@ -92,7 +98,12 @@ int CharacterExtensions::Lua_SetLFGRole(lua_State* L) {
 
     cdbcRole = GlobalCDBCMap.getRow<LFGRolesRow>("LFGRoles", classId);
 
-    CVar_C::sub_766940(reinterpret_cast<void*>(ptr), roles & cdbcRole->Roles, 1, 0, 0, 1);
+    int value = roles & cdbcRole->Roles;
+
+    char rolesString[32];
+    sprintf(rolesString, "%d", value);
+
+    CVar_C::Set(reinterpret_cast<CVar*>(ptr), rolesString, 1, 0, 0, 1);
     FrameScript::SignalEvent(EVENT_LFG_ROLE_UPDATE, 0);
     return 0;
 }
