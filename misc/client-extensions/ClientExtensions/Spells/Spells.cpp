@@ -180,7 +180,7 @@ CLIENT_DETOUR_THISCALL(GetLineSegment, 0x004F6450, int, (float a2, float a3, C3V
                 {
                     float mid = (left + right) * 0.5f;
                     point     = GetPointAtDistance(start, end, mid);
-                    pos       = {point.x, point.y, 0.0f};
+                    pos       = {point.x, point.y, point.z - 500.0f};
                     distance  = 1.0f;
 
                     float dist = CGUnit_C::GetDistanceToPos((CGUnit*)activeObjectPtr, &point);
