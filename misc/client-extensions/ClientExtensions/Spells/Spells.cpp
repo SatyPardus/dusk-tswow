@@ -117,17 +117,17 @@ CLIENT_DETOUR_THISCALL(GetLineSegment, 0x004F6450, int, (float a2, float a3, C3V
             PendingSpellCast* targetingSpell = *reinterpret_cast<PendingSpellCast**>(0x00D3F4E4);
             if (targetingSpell)
             {
-                auto data     = &targetingSpell->data;
-                float minDist = 0.0f, maxDist = 0.0f;
-                Spell_C::GetSpellRange(activeObjectPtr, data->spellId, &minDist, &maxDist, 0);
+                auto data          = &targetingSpell->data;
+                float minSpellDist = 0.0f, maxSpellDist = 0.0f;
+                Spell_C::GetSpellRange(activeObjectPtr, data->spellId, &minSpellDist, &maxSpellDist, 0);
 
-                float left = 0.0f, right = maxDist * 3;
+                float left = 0.0f, right = maxSpellDist * 3;
                 float bestDist = -1.0f;
                 C3Vector bestPoint, bestPos;
 
                 C3Vector point, pos, hitpoint;
-                float distance = 1.0f;
-                C3Vector playerPos = activeObjectPtr->unitBase.movementInfo->position;
+                float distance     = 1.0f;
+                C3Vector playerPos = activeObjectPtr->movementInfo->position;
 
                 bool shouldCheck = true;
 
@@ -141,30 +141,36 @@ CLIENT_DETOUR_THISCALL(GetLineSegment, 0x004F6450, int, (float a2, float a3, C3V
                 if (!shouldCheck)
                     return ret;
 
-                C3Vector start = *a4;
-                C3Vector end   = *a5;
-                C3Vector dir   = Normalize({end.x - start.x, end.y - start.y, end.z - start.z});
+                C3Vector start       = *a4;
+                C3Vector end         = *a5;
+                C3Vector dir         = Normalize({end.x - start.x, end.y - start.y, end.z - start.z});
                 C3Vector camToPlayer = {playerPos.x - start.x, playerPos.y - start.y, playerPos.z - start.z};
-                float t = Dot(camToPlayer, dir);
+                float t              = Dot(camToPlayer, dir);
 
                 if (t > 0.0f)
                 {
                     start = {start.x + dir.x * t, start.y + dir.y * t, start.z + dir.z * t};
                 }
 
+                float minDist = maxSpellDist * Spells::g_spell_min_clip_distance_percentage_cvar->m_numberValue;
                 while (right - left > 0.5f)
                 {
                     float mid = (left + right) * 0.5f;
                     point     = GetPointAtDistance(start, end, mid);
-                    pos       = {point.x, point.y, 0.0f};
+                    pos       = {point.x, point.y, point.z - 500.0f};
                     distance  = 1.0f;
 
-                    float dist = CGUnit_C::GetDistanceToPos((CGUnit*)activeObjectPtr, &point);
-                    float minDist = maxDist * Spells::g_spell_min_clip_distance_percentage_cvar->m_numberValue;
 
-                    if (dist > minDist * minDist &&
-                        TraceLine(&point, &pos, &hitpoint, &distance, 0x10111, 0))
+                    if (TraceLine(&point, &pos, &hitpoint, &distance, 0x10111, 0))
                     {
+                        float dist = activeObjectPtr->GetDistanceToPos(&hitpoint);
+
+                        if (dist < minDist * minDist)
+                        {
+                            left = mid;
+                            continue;
+                        }
+
                         WorldHitTest test{};
                         test.distance = distance;
                         test.start    = point;
@@ -174,7 +180,7 @@ CLIENT_DETOUR_THISCALL(GetLineSegment, 0x004F6450, int, (float a2, float a3, C3V
 
                         if (*(int*)0x00AC79A4 == 0) // s_spellShadowStyle - 0 Is "Success"
                         {
-                            bestDist  = mid;
+                            bestDist  = dist;
                             bestPoint = point;
                             bestPos   = pos;
                             left      = mid;
@@ -190,7 +196,7 @@ CLIENT_DETOUR_THISCALL(GetLineSegment, 0x004F6450, int, (float a2, float a3, C3V
                     }
                 }
 
-                if (bestDist > 0.0f)
+                if (bestDist > minDist * minDist)
                 {
                     *a4 = bestPoint;
                     *a5 = bestPos;
