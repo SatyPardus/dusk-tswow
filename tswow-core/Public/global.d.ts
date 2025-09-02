@@ -981,14 +981,14 @@ declare interface TSPlayer extends TSUnit, TSDBJsonProvider {
      *
      * @return float bonus
      */
-    GetManaBonusFromIntellect() : TSNumber<float>
+    GetManaBonusFromStats() : TSNumber<float>
 
     /**
      * Returns health bonus from amount of stamina
      *
      * @return float bonus
      */
-    GetHealthBonusFromStamina() : TSNumber<float>
+    GetHealthBonusFromStats() : TSNumber<float>
 
     /**
      * Returns rating multiplier
@@ -3391,6 +3391,9 @@ declare interface TSCreature extends TSUnit {
     LearnPetSpell(spell: uint32): void;
 
     ExtendDurationIfAble(amount: uint32): void;
+
+    GetFirstSpell(): uint32;
+    DoSpellAttackIfReady(spell: uint32): void;
 }
 
 declare interface TSArea extends TSEntityProvider {

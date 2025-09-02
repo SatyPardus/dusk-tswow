@@ -144,3 +144,15 @@ LUA_FUNCTION(GetWeaponAP, (lua_State* L)) {
 
     return 1;
 }
+
+LUA_FUNCTION(GetPetSP, (lua_State* L)) {
+    CGPlayer* activeObjectPtr = reinterpret_cast<CGPlayer*>(ClntObjMgr::ObjectPtr(ClntObjMgr::GetActivePlayer(), TYPEMASK_UNIT));
+    uint32_t attackType = ClientLua::GetNumber(L, 1);
+
+    if (activeObjectPtr && attackType < 3)
+        ClientLua::PushNumber(L, activeObjectPtr->PlayerData->petSpellPower);
+    else
+        ClientLua::PushNumber(L, 0.f);
+
+    return 1;
+}

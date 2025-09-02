@@ -101,8 +101,8 @@ void TSLua::load_player_methods(sol::state& state)
     LUA_FIELD(ts_player, TSPlayer, GetSkillValue);
     LUA_FIELD(ts_player, TSPlayer, GetPureMaxSkillValue);
     LUA_FIELD(ts_player, TSPlayer, GetMaxSkillValue);
-    LUA_FIELD(ts_player, TSPlayer, GetManaBonusFromIntellect);
-    LUA_FIELD(ts_player, TSPlayer, GetHealthBonusFromStamina);
+    LUA_FIELD(ts_player, TSPlayer, GetManaBonusFromStats);
+    LUA_FIELD(ts_player, TSPlayer, GetHealthBonusFromStats);
     LUA_FIELD(ts_player, TSPlayer, GetRatingMultiplier);
     LUA_FIELD(ts_player, TSPlayer, GetDifficulty);
     LUA_FIELD(ts_player, TSPlayer, GetGuildRank);

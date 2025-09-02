@@ -17,7 +17,11 @@ export class CharacterProcedureType extends EnumCellTransform<SpellCharacterProc
     get WEAPON_TRAIL() { return this.value(8, x=>new WeaponTrail(this.owner.row,this.owner.index)) }
     get BLIZZARD() { return this.value(9, x=>new Blizzard(this.owner.row,this.owner.index)) }
     get FISHING_LINE() { return this.value(10, x=>new SpellCharacterProcedurePlain(this.owner.row,this.owner.index)) }
-    get UNK_13() { return this.value(13, x=>new SpellCharacterProcedurePlain(this.owner.row,this.owner.index)) }
+    get FREEZE() { return this.value(11, x=>new SpellCharacterProcedurePlain(this.owner.row,this.owner.index)) }
+    // color trans - WIP
+    get UNK_13() { return this.value(13, x=>new ColorTransitionProcedure(this.owner.row,this.owner.index)) }
+    get SETALPHAMOD() { return this.value(14, x=>new AlphaProcedure(this.owner.row,this.owner.index)) }
+    get DOFADE() { return this.value(15, x=>new SpellCharacterProcedurePlain(this.owner.row,this.owner.index)) }
 }
 
 export class SpellCharacterProcedure extends CellSystemTop {
@@ -78,6 +82,22 @@ export class ColorProcedure extends SpellCharacterProcedure {
     get FadeOutTime() {
         return new MultiFloatWrapper(this, this.row.CharParamThree, this.index);
     }
+}
+
+export class ColorTransitionProcedure extends SpellCharacterProcedure {
+    get Color() {
+        return new MultiFloatWrapper(this, this.row.CharParamZero, this.index);
+    }
+    get Period() {
+        return new MultiFloatWrapper(this, this.row.CharParamOne, this.index);
+    }
+    get EndTime() {
+        return new MultiFloatWrapper(this, this.row.CharParamTwo, this.index);
+    }
+}
+
+export class AlphaProcedure extends SpellCharacterProcedure {
+    get Alpha() { return new MultiFloatWrapper(this, this.row.CharParamZero, this.index); }
 }
 
 export class ScaleProcedure extends SpellCharacterProcedure {
@@ -177,4 +197,9 @@ export class SpellCharacterProcedures<T> extends CellSystem<T> {
         super(owner);
         this.row = row;
     }
+}
+
+export function ARGBtoHex(R: float, G: float, B: float) : float {
+    const Hex = `00${Math.round(R*255).toString(16).padStart(2, '0')}${Math.round(G*255).toString(16).padStart(2, '0')}${Math.round(B*255).toString(16).padStart(2, '0')}`
+    return parseInt(Hex, 16)
 }
