@@ -270,7 +270,7 @@ LUA_FUNCTION(TranslateToMapCoords, (lua_State* L)) {
     worldPos.y = ClientLua::GetNumber(L, 3);
     worldPos.z = ClientLua::GetNumber(L, 4);
 
-    CGWorldFrame::TranslateToMapCoords(&worldPos, continentID, &mapX, &mapY, 0, 0, 0);
+    CGWorldFrame_C::TranslateToMapCoords(&worldPos, continentID, &mapX, &mapY, 0, 0, 0);
 
     ClientLua::PushNumber(L, mapX);
     ClientLua::PushNumber(L, mapY);

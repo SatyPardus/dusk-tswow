@@ -20,6 +20,8 @@ public:
         LOG_INFO << "Time offset set.";
         __init_scripts();
         LOG_INFO << "Client init scripts";
+        ClientLua::allowOutOfBoundsPointer();
+        LOG_INFO << "Client pointer extension applied";
         ClientNetwork::initialize();
         LOG_INFO << "Client network initialized";
         //some people get windows crashes, idk
@@ -29,8 +31,6 @@ public:
         LOG_INFO << "Client extensions initialized";
         ClientDetours::Apply();
         LOG_INFO << "Client detours applied";
-        ClientLua::allowOutOfBoundsPointer();
-        LOG_INFO << "Client pointer extension applied";
     }
 };
 
