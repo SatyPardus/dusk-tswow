@@ -151,7 +151,7 @@ CLIENT_DETOUR_THISCALL(GetLineSegment, 0x004F6450, int, (float a2, float a3, C3V
 
                 C3Vector point, pos, hitpoint;
                 float distance     = 1.0f;
-                C3Vector playerPos = activeObjectPtr->movementInfo->position;
+                C3Vector playerPos = activeObjectPtr->unitBase.movementInfo->position;
 
                 bool shouldCheck = true;
 
@@ -187,7 +187,7 @@ CLIENT_DETOUR_THISCALL(GetLineSegment, 0x004F6450, int, (float a2, float a3, C3V
 
                     if (TraceLine(&point, &pos, &hitpoint, &distance, 0x10111, 0))
                     {
-                        float dist = activeObjectPtr->GetDistanceToPos(&hitpoint);
+                        float dist = CGUnit_C::GetDistanceToPos((CGUnit*)activeObjectPtr, &hitpoint);
 
                         if (dist < minDist * minDist)
                         {
