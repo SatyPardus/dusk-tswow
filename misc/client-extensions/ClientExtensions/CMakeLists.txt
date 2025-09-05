@@ -26,6 +26,7 @@ set_property(TARGET ClientExtensions PROPERTY CXX_STANDARD 17)
 target_link_libraries(ClientExtensions PRIVATE detours CustomPackets)
 target_include_directories(ClientExtensions PUBLIC
     ${CMAKE_SOURCE_DIR}/lua-5.1/src
+    ${CMAKE_SOURCE_DIR}/freetype/include
     ${CMAKE_SOURCE_DIR}/CustomPackets
     ${detours_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR} # so "Scripts" can include it
