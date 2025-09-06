@@ -104,55 +104,65 @@ struct CGxFont
     uint32_t m_pixelSize;
 };
 
-const uint32_t textureScale = 1024;
+const uint32_t textureScale = 256;
 
-CLIENT_DETOUR(TEXTURECACHE__CreateTexture, 0x00991320, __cdecl, void, (TEXTURECACHE *self, int a2))
+CLIENT_DETOUR(GxuFontInitialize, 0x006BE230, __stdcall, void, (void))
+{
+    const char* textShader = "UI-Text\0";
+    Util::OverwriteUInt32AtAddress(0x006BE264, reinterpret_cast<uint32_t>(textShader));
+    GxuFontInitialize();
+}
+
+CLIENT_DETOUR(TEXTURECACHE__CreateTexture, 0x00991320, __cdecl, void, (TEXTURECACHE * self, int a2))
 {
     Util::OverwriteUInt32AtAddress(0x006CA08E, textureScale);
     Util::OverwriteUInt32AtAddress(0x006CA093, textureScale);
+    Util::SetByteAtAddress((void*)0x006CA08A, 0x2);
+    Util::SetByteAtAddress((void*)0x006CA08C, 0x2);
     TEXTURECACHE__CreateTexture(self, a2);
 }
 
-static uint16_t s_textureData[textureScale * textureScale];
+static uint32_t s_textureData[textureScale * textureScale];
 
-void WritePPM(const char* filename)
+void WriteTGA32(const char* filename)
 {
     FILE* f = fopen(filename, "wb");
     if (!f)
-    {
-        perror("Failed to open file");
         return;
-    }
 
-    const int width  = textureScale;
-    const int height = textureScale;
+    const uint16_t width  = textureScale;
+    const uint16_t height = textureScale;
 
-    // PPM header (P6 = binary RGB)
-    fprintf(f, "P6\n%d %d\n255\n", width, height);
+    // 18-byte TGA header
+    uint8_t header[18] = {};
+    header[2]          = 2; // uncompressed true-color
+    header[12]         = width & 0xFF;
+    header[13]         = width >> 8;
+    header[14]         = height & 0xFF;
+    header[15]         = height >> 8;
+    header[16]         = 32;   // 32 bits per pixel
+    header[17]         = 0x08; // 8 bits alpha
+    fwrite(header, 1, 18, f);
 
-    // Iterate over texture and write RGB bytes
+    // write pixels (B G R A)
     for (int y = 0; y < height; ++y)
     {
         for (int x = 0; x < width; ++x)
         {
-            uint16_t pix = s_textureData[y * width + x];
-
-            // Extract 4-bit channels
-            uint8_t a = (pix >> 8) & 0xF; // alpha (ignored in PPM)
-            uint8_t r = (pix >> 12) & 0xF;
-            uint8_t g = (pix >> 4) & 0xF;
-            uint8_t b = pix & 0xF;
-
-            // Expand 4-bit to 8-bit (multiply by 17)
-            uint8_t rgb[3] = {uint8_t(r * 17), uint8_t(g * 17), uint8_t(b * 17)};
-
-            fwrite(rgb, 1, 3, f);
+            uint32_t pix   = reinterpret_cast<uint32_t*>(s_textureData)[y * width + x];
+            uint8_t a      = (pix >> 24) & 0xFF;
+            uint8_t r      = (pix >> 16) & 0xFF;
+            uint8_t g      = (pix >> 8) & 0xFF;
+            uint8_t b      = pix & 0xFF;
+            uint8_t buf[4] = {b, g, r, a};
+            fwrite(buf, 1, 4, f);
         }
     }
 
     fclose(f);
-    printf("PPM texture written successfully.\n");
+    printf("TGA texture written successfully.\n");
 }
+
 
 CLIENT_FUNCTION(SMemAlloc, 0x0076E540, __stdcall, void*, (int size, char* a2, int a3, int a4));
 CLIENT_FUNCTION(SMemFree, 0x0076E5A0, __stdcall, void, (void* block, char* a2, int a3, int a4));
@@ -204,12 +214,9 @@ CLIENT_DETOUR(IGxuFontGlyphRenderGlyph, 0x006C8CC0, __cdecl, char, (FT_Face face
     auto ret = IGxuFontGlyphRenderGlyph(face, pixelSize, charCode, a4, bitmapData, a6, a7);
     if (ret)
     {
-        pixelSize *= 4;
-
-        FT_Set_Pixel_Sizes(face, pixelSize, 0);
         auto charIndex = FT_Get_Char_Index(face, charCode);
         FT_Load_Glyph(face, charIndex, a6 != 0 ? 8386 : 8330);
-        FT_Render_Glyph(face->glyph, a6 != 0 ? FT_RENDER_MODE_MONO : FT_RENDER_MODE_NORMAL);
+        FT_Render_Glyph(face->glyph, FT_RENDER_MODE_SDF);
 
         SMemFree(bitmapData->m_data, "free", 0, 0);
         size_t size = face->glyph->bitmap.pitch * face->glyph->bitmap.rows;
@@ -251,7 +258,9 @@ CLIENT_DETOUR(TextureCallback, 0x006C9F50, __cdecl, void,
         //a6->m_theFace->m_cellHeight = 24;
         if (a6->m_textureRows.m_count && a6->m_theFace && a6->m_texture && a6->m_theFace->m_cellHeight)
         {
-            memset(s_textureData, 0, textureScale * textureScale * 2);
+            int cellHeight = 32;
+
+            memset(s_textureData, 0, textureScale * textureScale * 4);
             for (size_t i = 0; i < a6->m_textureRows.m_count; i++)
             {
                 for (CHARCODEDESC* next = a6->m_textureRows.m_data[i].glyphlist.m_terminator.m_next;
@@ -259,12 +268,12 @@ CLIENT_DETOUR(TextureCallback, 0x006C9F50, __cdecl, void,
                      next = *reinterpret_cast<CHARCODEDESC**>((uintptr_t)next + a6->m_textureRows.m_data[i].glyphlist.m_linkoffset + 4))
                 {
 
-                    uint32_t offset = next->glyphStartPixel + ((next->rowNumber * 64) * 1024);
-                    uint16_t* dst   = &s_textureData[offset];
+                    uint32_t offset = next->glyphStartPixel + ((next->rowNumber * cellHeight) * textureScale);
+                    uint32_t* dst   = &s_textureData[offset];
 
                     auto src           = reinterpret_cast<uint8_t*>(next->bitmapData.m_data);
                     auto pitch         = next->bitmapData.m_glyphPitch;
-                    auto dstCellStride = next->bitmapData.m_glyphWidth * 2;
+                    auto dstCellStride = next->bitmapData.m_glyphWidth * 4;
 
                     printf("%d %d %d %d %d %d %d\n", a6->m_textureRows.m_count, next->glyphStartPixel, next->rowNumber,
                            a6->m_theFace->m_cellHeight, a6->m_textureRows.m_data[i].glyphlist.m_linkoffset, pitch,
@@ -279,7 +288,13 @@ CLIENT_DETOUR(TextureCallback, 0x006C9F50, __cdecl, void,
                     {
                         for (int32_t x = 0; x < next->bitmapData.m_glyphWidth; x++)
                         {
-                            dst[x] = ((src[x] & 0xF0) << 8) | 0xFFF;
+                            uint8_t sdf = src[x];
+                            uint8_t a   = sdf;
+                            uint8_t r   = 255;
+                            uint8_t g   = 255;
+                            uint8_t b   = 255;
+
+                            dst[x] = (a << 24) | (r << 16) | (g << 8) | b;
                         }
 
                         src += pitch;
@@ -287,10 +302,10 @@ CLIENT_DETOUR(TextureCallback, 0x006C9F50, __cdecl, void,
                     }
                     auto glyphHeight = next->bitmapData.m_glyphHeight;
                     auto yStart      = next->bitmapData.m_yStart;
-                    if (64 - glyphHeight - yStart > 0 &&
-                        64 - glyphHeight != yStart)
+                    if (cellHeight - glyphHeight - yStart > 0 && cellHeight - glyphHeight != yStart)
                     {
-                        for (int32_t y = 0; y < (int32_t)64 - (int32_t)glyphHeight - yStart; y++)
+                        for (int32_t y = 0; y < (int32_t)cellHeight - (int32_t)glyphHeight - yStart;
+                             y++)
                         {
                             memset(dst, 0, dstCellStride);
                             dst += textureScale;
@@ -299,9 +314,9 @@ CLIENT_DETOUR(TextureCallback, 0x006C9F50, __cdecl, void,
                 }
             }
 
-            WritePPM("testrender.ppm");
+            WriteTGA32("testrender.tga");
 
-            a7 = textureScale * 2;
+            a7 = textureScale * 4;
             a8 = s_textureData;
         }
     }
@@ -311,7 +326,7 @@ CLIENT_DETOUR(TextureCallback, 0x006C9F50, __cdecl, void,
     }
 }
 
-static uint32_t origGlyphCellWidth;
+//static uint32_t origGlyphCellWidth;
 
 CLIENT_DETOUR_THISCALL(GenerateTextureCoords, 0x006C4380, void, (int rowNumber, int cellHeight))
 {
@@ -319,33 +334,33 @@ CLIENT_DETOUR_THISCALL(GenerateTextureCoords, 0x006C4380, void, (int rowNumber, 
     CRect rect{};
 
     float size = (float)(1.0f / textureScale);
-    int n1     = rowNumber * 64;
-    rect.yMax  = (cellHeight * 4 + n1) * size;
+    int n1     = rowNumber * 32;
+    rect.yMax  = (cellHeight + n1) * size;
     rect.yMin  = n1 * size;
     rect.xMin  = charcodedesc->glyphStartPixel * size;
-    rect.xMax  = size * (charcodedesc->glyphStartPixel + origGlyphCellWidth * 4);
+    rect.xMax  = size * (charcodedesc->glyphStartPixel + charcodedesc->bitmapData.m_glyphCellWidth);
     charcodedesc->bitmapData.m_textureCoords = rect;
 }
 
-CLIENT_DETOUR_THISCALL(GLYPHBITMAPDATA__CopyFrom, 0x006C4190, void, (GLYPHBITMAPDATA *a2))
-{
-    a2->m_glyphCellWidth = origGlyphCellWidth;
-    GLYPHBITMAPDATA__CopyFrom(self, a2);
-}
+//CLIENT_DETOUR_THISCALL(GLYPHBITMAPDATA__CopyFrom, 0x006C4190, void, (GLYPHBITMAPDATA *a2))
+//{
+//    a2->m_glyphCellWidth = origGlyphCellWidth;
+//    GLYPHBITMAPDATA__CopyFrom(self, a2);
+//}
 
-CLIENT_DETOUR_THISCALL(GetGlyphData, 0x006C2480, char, (int a2, int a3))
-{
-    CGxFont* font  = reinterpret_cast<CGxFont*>(self);
-    uint32_t prev  = font->m_pixelSize;
-    uint32_t prevC = font->m_cellHeight;
-    // font->m_pixelSize = 24;
-    // font->m_cellHeight = 24;
-    auto ret           = GetGlyphData(self, a2, a3);
-    font->m_pixelSize  = prev;
-    font->m_cellHeight = prevC;
-
-    return ret;
-}
+//CLIENT_DETOUR_THISCALL(GetGlyphData, 0x006C2480, char, (int a2, int a3))
+//{
+//    CGxFont* font  = reinterpret_cast<CGxFont*>(self);
+//    uint32_t prev  = font->m_pixelSize;
+//    uint32_t prevC = font->m_cellHeight;
+//    // font->m_pixelSize = 24;
+//    // font->m_cellHeight = 24;
+//    auto ret           = GetGlyphData(self, a2, a3);
+//    font->m_pixelSize  = prev;
+//    font->m_cellHeight = prevC;
+//
+//    return ret;
+//}
 
 CLIENT_DETOUR_THISCALL(TEXTURECACHE__Initialize, 0x006CA130, void, (void* a2, int a3))
 {
@@ -359,10 +374,10 @@ CLIENT_DETOUR_THISCALL(TEXTURECACHEROW__CreateNewDesc, 0x006C5120, CHARCODEDESC*
     Util::OverwriteUInt32AtAddress(0x006C529E, textureScale - 1);
     Util::OverwriteUInt32AtAddress(0x006C52F2, textureScale - 1);
 
-    origGlyphCellWidth   = a2->m_glyphCellWidth;
-    a2->m_glyphCellWidth = a2->m_glyphCellWidth * 4;
+    //origGlyphCellWidth   = a2->m_glyphCellWidth;
+    //a2->m_glyphCellWidth = a2->m_glyphCellWidth * 4;
     auto ret = TEXTURECACHEROW__CreateNewDesc(self, a2, a3, a4);
-    a2->m_glyphCellWidth = origGlyphCellWidth;
+    //a2->m_glyphCellWidth = origGlyphCellWidth;
     return ret;
 }
 
@@ -373,13 +388,13 @@ CLIENT_DETOUR_THISCALL_NOARGS(TEXTURECACHE__UpdateDirty, 0x006C9D50, void)
     TEXTURECACHE__UpdateDirty(self);
 }
 
-CLIENT_DETOUR_THISCALL_NOARGS(CGxFont__UpdateDimensions, 0x006C9D50, bool)
+CLIENT_DETOUR_THISCALL_NOARGS(CGxFont__UpdateDimensions, 0x006C22F0, bool)
 {
     auto ret = CGxFont__UpdateDimensions(self);
     if (ret)
     {
         CGxFont* font = reinterpret_cast<CGxFont*>(self);
-
+        //font->m_cellHeight = 32;
     }
     return ret;
 }
@@ -421,7 +436,7 @@ CLIENT_DETOUR(FT_Load_Glyph_Original, 0x00992DA0, __cdecl, int, (FT_Face face, F
 
 CLIENT_DETOUR(FT_Render_Glyph_Original, 0x00992B60, __cdecl, int, (FT_GlyphSlot slot, FT_Render_Mode render_mode))
 {
-    return FT_Render_Glyph(slot, render_mode); //FT_RENDER_MODE_SDF);
+    return FT_Render_Glyph(slot, FT_RENDER_MODE_SDF);
 }
 
 CLIENT_DETOUR(FT_Get_Kerning_Original, 0x00991050, __cdecl, int, (FT_Face face, FT_UInt left_glyph, FT_UInt right_glyph, FT_UInt kern_mode, FT_Vector* akerning))
