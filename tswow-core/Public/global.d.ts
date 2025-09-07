@@ -10554,6 +10554,8 @@ declare class TSSpellDamageInfo {
     GetHitInfo(): TSNumber<uint32>
     GetCleanDamage(): TSNumber<uint32>
     GetFullBlock(): bool;
+    GetDamageType(): TSNumber<uint8>
+    GetAttackType(): TSNumber<uint8>
 }
 
 declare interface TSHealInfo {
