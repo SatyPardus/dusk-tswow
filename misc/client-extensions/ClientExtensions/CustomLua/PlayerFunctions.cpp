@@ -161,7 +161,7 @@ LUA_FUNCTION(GetSpeedPercent, (lua_State* L)) {
     CGPlayer* activeObjectPtr = reinterpret_cast<CGPlayer*>(ClntObjMgr::ObjectPtr(ClntObjMgr::GetActivePlayer(), TYPEMASK_UNIT));
 
     if (activeObjectPtr)
-        ClientLua::PushNumber(L, activeObjectPtr->unitBase.unitData->speed);
+        ClientLua::PushNumber(L, activeObjectPtr->PlayerData->speed);
     else
         ClientLua::PushNumber(L, 0.f);
 
@@ -172,7 +172,7 @@ LUA_FUNCTION(GetLeechPercent, (lua_State* L)) {
     CGPlayer* activeObjectPtr = reinterpret_cast<CGPlayer*>(ClntObjMgr::ObjectPtr(ClntObjMgr::GetActivePlayer(), TYPEMASK_UNIT));
 
     if (activeObjectPtr)
-        ClientLua::PushNumber(L, activeObjectPtr->unitBase.unitData->leech);
+        ClientLua::PushNumber(L, activeObjectPtr->PlayerData->leech);
     else
         ClientLua::PushNumber(L, 0.f);
 
@@ -183,7 +183,7 @@ LUA_FUNCTION(GetAvoidancePercent, (lua_State* L)) {
     CGPlayer* activeObjectPtr = reinterpret_cast<CGPlayer*>(ClntObjMgr::ObjectPtr(ClntObjMgr::GetActivePlayer(), TYPEMASK_UNIT));
 
     if (activeObjectPtr)
-        ClientLua::PushNumber(L, activeObjectPtr->unitBase.unitData->avoidance);
+        ClientLua::PushNumber(L, activeObjectPtr->PlayerData->avoidance);
     else
         ClientLua::PushNumber(L, 0.f);
 
