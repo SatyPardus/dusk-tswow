@@ -21,29 +21,26 @@ import { SpellAdditionalAttributesCDBCFile } from "./cdbc/SpellAdditionalAttribu
 import { SpellAdditionalCostDataCDBCFile } from "./cdbc/SpellAdditionalCostData";
 import { ZoneLightCDBCFile } from "./cdbc/ZoneLight";
 import { ZoneLightPointCDBCFile } from "./cdbc/ZoneLightPoint";
-import { OcclusionVolumeCDBCFile } from "./cdbc/OcclusionVolume";
-import { OcclusionVolumePointCDBCFile } from "./cdbc/OcclusionVolumePoint";
+import { SpellEffectScalarsCDBCFile } from "./cdbc/SpellEffectScalars";
 
 export const CDBC = {
-    LFGRoles: new LFGRolesCDBCFile(),
-    SpellAdditionalAttributes: new SpellAdditionalAttributesCDBCFile(),
-    SpellAdditionalCostData: new SpellAdditionalCostDataCDBCFile(),
-    ZoneLight: new ZoneLightCDBCFile(),
-    ZoneLightPoint: new ZoneLightPointCDBCFile(),
-    OcclusionVolume: new OcclusionVolumeCDBCFile(),
-    OcclusionVolumePoint: new OcclusionVolumePointCDBCFile()
+    LFGRoles : new LFGRolesCDBCFile(),
+    SpellAdditionalAttributes : new SpellAdditionalAttributesCDBCFile(),
+    SpellAdditionalCostData : new SpellAdditionalCostDataCDBCFile(),
+    ZoneLight : new ZoneLightCDBCFile(),
+    ZoneLightPoint : new ZoneLightPointCDBCFile(),
+    SpellEffectScalars : new SpellEffectScalarsCDBCFile(),
 }
 
 export const CDBCLoader = {
-    LFGRoles: (path: string) => LFGRolesCDBCFile.read(path),
-    SpellAdditionalAttributes: (path: string) => SpellAdditionalAttributesCDBCFile.read(path),
-    SpellAdditionalCostData: (path: string) => SpellAdditionalCostDataCDBCFile.read(path),
-    ZoneLight: (path: string) => ZoneLightCDBCFile.read(path),
-    ZoneLightPoint: (path: string) => ZoneLightCDBCFile.read(path),
-    OcclusionVolume: (path: string) => OcclusionVolumeCDBCFile.read(path),
-    OcclusionVolumePoint: (path: string) => OcclusionVolumePointCDBCFile.read(path),
+    LFGRoles : (path: string) => LFGRolesCDBCFile.read(path),
+    SpellAdditionalAttributes : (path: string) => SpellAdditionalAttributesCDBCFile.read(path),
+    SpellAdditionalCostData : (path: string) => SpellAdditionalCostDataCDBCFile.read(path),
+    ZoneLight : (path: string) => ZoneLightCDBCFile.read(path),
+    ZoneLightPoint : (path: string) => ZoneLightCDBCFile.read(path),
+    SpellEffectScalars: (path: string) => SpellEffectScalarsCDBCFile.read(path),
 }
 
-export type CDBCNames = "LFGRoles" | "SpellAdditionalAttributes" | "SpellAdditionalCostData" | "ZoneLight" | "ZoneLightPoint" | "OcclusionVolume" | "OcclusionVolumePoint"
+export type CDBCNames = "LFGRoles" | "SpellAdditionalAttributes" | "SpellAdditionalCostData" | "ZoneLight" | "ZoneLightPoint" | "SpellEffectScalars"
 
 export const CDBCFiles: CDBCFile<any, any, any>[] = Object.values(CDBC);

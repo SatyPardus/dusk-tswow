@@ -122,6 +122,17 @@ enum SpellAttr0Custom : uint32_t {
     SPELL_ATTR0_CU_LOW_CAST_TIME_DONT_INTERRUPT = 0x00000100,   // If cast time <= 250ms, does not interrupt
 };
 
+enum SpellSchools : uint32_t {
+    SPELL_SCHOOL_NORMAL = 0, // TITLE Physical
+    SPELL_SCHOOL_HOLY   = 1, // TITLE Holy
+    SPELL_SCHOOL_FIRE   = 2, // TITLE Fire
+    SPELL_SCHOOL_NATURE = 3, // TITLE Nature
+    SPELL_SCHOOL_FROST  = 4, // TITLE Frost
+    SPELL_SCHOOL_SHADOW = 5, // TITLE Shadow
+    SPELL_SCHOOL_ARCANE = 6, // TITLE Arcane
+    MAX_SPELL_SCHOOL    = 7  // SKIP
+};
+
 static uint32_t dummy = 0;
 
 static char* sConnectorPlus = " + ";
@@ -175,7 +186,16 @@ struct PlayerFields {
     float spellCritPct[7];
     float shieldBlock;
     float shieldBlockCritPct;
-    uint32_t padding0x0DEC[190];
+    uint32_t exploredzones[128];
+    uint32_t restedXP;
+    uint32_t coinage;
+    int32_t SPPos[7];
+    int32_t SPNeg[7];
+    float SPBonus[7];
+    uint32_t healingPower;
+    float healingTakenMult;
+    float healingDoneMult;
+    uint32_t padding0x0DEC[36];
     int32_t crWeaponSkill;
     int32_t crDefenseSkill;
     int32_t crDodge;
@@ -203,7 +223,9 @@ struct PlayerFields {
     int32_t crThorns;       // crArmorPenetration
     uint32_t padding0x1120[56];
     uint32_t glyphslots[6];
-    uint32_t glyphs[3];
+    float speed;
+    float leech;
+    float avoidance;
     int32_t weaponBonusAP[3];
     uint32_t glyphsEnabled; // can reuse, glyphs are disabled
     int32_t petSpellPower;
@@ -263,9 +285,21 @@ struct UnitFields {
     uint32_t createdBySpell;
     uint32_t npcFlags;
     uint32_t emoteState;
-    uint32_t attributes[5];
-    uint32_t attributesPos[5];
-    uint32_t attributesNeg[5];
+    int32_t strength;
+    int32_t agility;
+    int32_t stamina;
+    int32_t intellect;
+    int32_t spirit;
+    float strengthPos;
+    float agilityPos;
+    float staminaPos;
+    float intellectPos;
+    float spiritPos;
+    float strengthNeg;
+    float agilityNeg;
+    float staminaNeg;
+    float intellectNeg;
+    float spiritNeg;
     uint32_t resistances[7];
     uint32_t resistancesPos[7];
     uint32_t resistancesNeg[7];
@@ -538,14 +572,113 @@ struct ZoneLightData
     float maxY;
 };
 
-struct OcclusionVolumeData
+struct AuraData
 {
-    int32_t mapID;
-    int32_t flags;
-    C3Vector min;
-    C3Vector max;
-    void* pointData;
-    int32_t pointNum;
+    uint64_t creator;
+    uint32_t spellId;
+    byte flags;
+    byte level;
+    byte stackCount;
+    byte ukn;
+    int duration;
+    int endTime;
+};
+
+struct TerrainClickEvent
+{
+    uint64_t GUID;
+    float x, y, z;
+    uint32_t button;
+};
+
+struct WoWClientDB
+{
+    void* funcTable;
+    int isLoaded;
+    int numRows;
+    int maxIndex;
+    int minIndex;
+    int stringTable;
+    void* funcTable2;
+    int* FirstRow;
+    int* Rows;
+};
+
+struct TSLink
+{
+    TSLink* m_prevlink;
+    void* m_next;
+};
+
+struct TSList
+{
+    ptrdiff_t m_linkoffset;
+    TSLink m_terminator;
+};
+
+struct RCString
+{
+    void** vtable;
+    DWORD ukn1;
+    char* string;
+};
+
+struct CVar;
+typedef char(__cdecl* CVarCallback)(CVar*, const char*, const char*, const char*);
+struct CVar
+{
+    DWORD pad[0x18];
+    DWORD m_category;
+    DWORD m_flags;
+    RCString m_stringValue;
+    float m_numberValue;
+    int m_intValue;
+    int m_modified;
+    RCString m_defaultValue;
+    RCString m_resetValue;
+    RCString m_latchedValue;
+    RCString m_help;
+    CVarCallback m_callback;
+    void* m_arg;
+};
+
+struct WorldHitTest
+{
+    uint64_t guid;
+    C3Vector hitpoint;
+    float distance;
+    C3Vector start;
+    C3Vector end;
+};
+
+struct CSimpleTop
+{
+    char pad1[0x78];
+    void* mouseFocus;
+    char pad2[0x11A8];
+    C2Vector mousePosition;
+};
+
+struct CGWorldFrame
+{
+    char pad1[0xA0];
+    CSimpleTop* simpleTop;
+    char pad2[0x234];
+    uint32_t ukn16;
+    uint32_t ukn17;
+    WorldHitTest m_actionHitTest;
+};
+
+struct PendingSpellCastData
+{
+    char pad0[0x18];
+    uint32_t spellId;
+};
+
+struct PendingSpellCast
+{
+    char pad0[0x8];
+    PendingSpellCastData data;
 };
 
 // client functions
@@ -564,12 +697,18 @@ namespace CGPetInfo_C {
 namespace CGUnit_C {
     CLIENT_FUNCTION(GetShapeshiftFormId, 0x71AF70, __thiscall, uint32_t, (CGUnit*))
     CLIENT_FUNCTION(HasAuraBySpellId, 0x7282A0, __thiscall, bool, (CGUnit*, uint32_t))
+    CLIENT_FUNCTION(GetAuraCount, 0x004F8850, __thiscall, int, (CGUnit*))
+    CLIENT_FUNCTION(GetAura, 0x00556E10, __thiscall, AuraData*, (CGUnit*, uint32_t))
+    CLIENT_FUNCTION(GetAuraFlags, 0x00565510, __thiscall, byte, (CGUnit*, uint32_t))
+    CLIENT_FUNCTION(AffectedByAura, 0x007283A0, __thiscall, char, (CGUnit*, uint32_t, uint32_t))
     CLIENT_FUNCTION(HasAuraMatchingSpellClass, 0x7283A0, __thiscall, bool, (CGUnit*, uint32_t, SpellRow*))
     CLIENT_FUNCTION(ShouldFadeIn, 0x716650, __thiscall, bool, (CGUnit*))
+    CLIENT_FUNCTION(GetDistanceToPos, 0x004F61D0, __thiscall, float, (CGUnit*, C3Vector*))
 }
 
-namespace CGWorldFrame {
+namespace CGWorldFrame_C {
     CLIENT_FUNCTION(TranslateToMapCoords, 0x544140, __cdecl, bool, (C3Vector*, uint32_t, float*, float*, uint32_t, bool, uint32_t))
+    CLIENT_FUNCTION(Intersect, 0x0077F310, __cdecl, char, (C3Vector*, C3Vector*, C3Vector*, float*, int, int))
 }
 
 namespace ClientDB {
@@ -583,12 +722,14 @@ namespace ClientPacket {
 
 namespace ClntObjMgr {
     CLIENT_FUNCTION(GetActivePlayer, 0x4D3790, __cdecl, uint64_t, ())
+    CLIENT_FUNCTION(GetActivePlayerObj, 0x004038F0, __cdecl, CGPlayer*, ())
     CLIENT_FUNCTION(GetUnitFromName, 0x60C1F0, __cdecl, CGUnit*, (char*))
     CLIENT_FUNCTION(ObjectPtr, 0x4D4DB0, __cdecl, void*, (uint64_t, uint32_t))
 }
 
 namespace CVar_C {
     CLIENT_FUNCTION(sub_766940, 0x766940, __thiscall, void, (void*, int, char, char, char, char))
+    CLIENT_FUNCTION(Register, 0x00767FC0, __cdecl, CVar*, (char*, char*, int, char*, CVarCallback, int, char, int, char))
 }
 
 namespace DNInfo {
@@ -612,6 +753,10 @@ namespace SpellParser {
 
 namespace Spell_C {
     CLIENT_FUNCTION(SpellFailed, 0x808200, __cdecl, void, (void*, SpellRow*, uint32_t, int32_t, int32_t, uint32_t))
+    CLIENT_FUNCTION(IsTargeting, 0x007FD620, __cdecl, bool, ())
+    CLIENT_FUNCTION(CanTargetTerrain, 0x007FD750, __cdecl, bool, ())
+    CLIENT_FUNCTION(CanTargetUnits, 0x007FD650, __cdecl, bool, ())
+    CLIENT_FUNCTION(GetSpellRange, 0x00802C30, __cdecl, void, (void* a1, unsigned int spellId, float* minDist, float* maxDist, void* a5))
 }
 
 namespace SpellRec_C {
@@ -663,3 +808,6 @@ CLIENT_FUNCTION(sub_61FEC0, 0x61FEC0, __thiscall, void, (void*, char*, char*, vo
 CLIENT_FUNCTION(sub_6B1080, 0x6B1080, __cdecl, uint8_t, ())
 CLIENT_FUNCTION(sub_6E22C0, 0x6E22C0, __thiscall, uint32_t, (void*, uint32_t))
 CLIENT_FUNCTION(sub_812410, 0x812410, __cdecl, SkillLineAbilityRow*, (uint32_t, uint32_t, uint32_t))
+CLIENT_FUNCTION(TerrainClick, 0x00527830, __cdecl, void, (TerrainClickEvent*))
+CLIENT_FUNCTION(SStrCmpI, 0x0076E780, __stdcall, int, (char* text1, const char* text2, int length))
+CLIENT_FUNCTION(TraceLine, 0x007A3B70, __cdecl, char, (C3Vector* start, C3Vector* end, C3Vector* hitPoint, float* distance, uint32_t flag, uint32_t optional))

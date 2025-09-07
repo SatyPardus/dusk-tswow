@@ -4,8 +4,7 @@
 #include "CDBCDefs/SpellAdditionalCostData.h"
 #include "CDBCDefs/ZoneLight.h"
 #include "CDBCDefs/ZoneLightPoint.h"
-#include "CDBCDefs/OcclusionVolume.h"
-#include "CDBCDefs/OcclusionVolumePoint.h"
+#include "CDBCDefs/SpellEffectScalars.h"
 
 CDBCMgr GlobalCDBCMap;
 std::unordered_map<std::string, std::function<int(lua_State*,int)>> cdbcLuaHandlers = {};
@@ -16,13 +15,16 @@ void CDBCMgr::Load() {
     SpellAdditionalCostData().LoadDB();
     ZoneLight().LoadDB();
     ZoneLightPoint().LoadDB();
-    OcclusionVolume().LoadDB();
-    OcclusionVolumePoint().LoadDB();
+    SpellEffectScalars().LoadDB();
 }
 
 void CDBCMgr::addCDBC(std::string cdbcName) {
     allCDBCs[cdbcName] = CDBC();
     cdbcIndexRanges[cdbcName] = { 0, 0 };
+}
+
+CDBCMgr::CDBC CDBCMgr::getCDBC(std::string cdbcName) {
+    return allCDBCs[cdbcName];
 }
 
 void CDBCMgr::addCDBCLuaHandler(std::string cdbcName, std::function<int(lua_State*,int)> func) {

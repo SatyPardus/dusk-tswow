@@ -126,7 +126,9 @@ declare class ChargeData {
 }
 
 declare const SpellChargeData: ChargeData[]
-declare const SpellsWithCharges: uint32[]
+declare const ActionButtonMap: any[]
+
+declare function ActionButton_UpdateUsable(self: WoWAPI.Button): void;
 
 declare function HideUIPanel(frame: WoWAPI.Frame): void;
 declare function format(formatString: String, input:String):String;
@@ -3766,7 +3768,7 @@ declare function ShowMerchantSellCursor(index:number):void;
 declare function ShowRepairCursor():void;
 declare function GetNumBuybackItems():number;
 
-declare function SetPortraitToTexture(texture:WoWAPI.Texture,path:string):void;
+declare function SetPortraitToTexture(texture:WoWAPI.Texture,path:string,mask?:string):void;
 declare function SetPortraitTexture(texture:WoWAPI.Texture,unitToken:WoWAPI.UnitId,disableMasking?:boolean):void;
 
 declare const MAX_PLAYER_LEVEL_TABLE: {

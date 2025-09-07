@@ -151,6 +151,9 @@ public:
 
     void ExtendDurationIfAble(uint32_t amount);
 
+    uint32 GetFirstSpell();
+    void DoSpellAttackIfReady(uint32 spell);
+
 private:
     TSLua::Array<TSUnit> LGetThreatList();
     friend class TSLua;

@@ -981,14 +981,14 @@ declare interface TSPlayer extends TSUnit, TSDBJsonProvider {
      *
      * @return float bonus
      */
-    GetManaBonusFromIntellect() : TSNumber<float>
+    GetManaBonusFromStats() : TSNumber<float>
 
     /**
      * Returns health bonus from amount of stamina
      *
      * @return float bonus
      */
-    GetHealthBonusFromStamina() : TSNumber<float>
+    GetHealthBonusFromStats() : TSNumber<float>
 
     /**
      * Returns rating multiplier
@@ -3391,6 +3391,9 @@ declare interface TSCreature extends TSUnit {
     LearnPetSpell(spell: uint32): void;
 
     ExtendDurationIfAble(amount: uint32): void;
+
+    GetFirstSpell(): uint32;
+    DoSpellAttackIfReady(spell: uint32): void;
 }
 
 declare interface TSArea extends TSEntityProvider {
@@ -6500,10 +6503,8 @@ declare interface TSUnit extends TSWorldObject {
     GetDiseasesByCaster(guid: TSGUID, remove: bool) : TSNumber<uint32>
     GetBleedsByCaster(guid: TSGUID, remove: bool) : TSNumber<uint32>
 
-    SelectNearbyTargets(exclude: TSArray<TSUnit>, dist: float, amount: uint32) : TSArray<TSUnit>
-    SelectNearbyTargetWithoutAura(exclude: TSUnit, dist: float, Aura: uint32) : TSUnit
-    SelectNearbyAllies(exclude: TSArray<TSUnit>, dist: float, amount: uint32) : TSArray<TSUnit>
-    SelectTargetsNearTarget(target: TSUnit, exclude: TSArray<TSUnit>, dist: float, amount: uint32) : TSArray<TSUnit>
+    SelectNearbyAllies(target: TSUnit, exclude: TSArray<TSUnit>, dist: float, amount: uint32, without: uint32) : TSArray<TSUnit>
+    SelectTargetsNearTarget(target: TSUnit, exclude: TSArray<TSUnit>, dist: float, amount: uint32, without: uint32) : TSArray<TSUnit>
 
     RemoveAllControlled(): void;
 
@@ -10274,6 +10275,7 @@ declare function StopGameEvent(event_id: uint16): void
 declare function GetLuaGarbageCur(): TSNumber<uint64>
 declare function GetLuaGarbageTotal(): TSNumber<uint64>
 declare function RegisterPacketForNotInWorld(opcode:number,isActive:bool): void;
+declare function KickAll(): void
 
 /**
  * @param entry - The id to be used for the new item template.
@@ -10552,6 +10554,8 @@ declare class TSSpellDamageInfo {
     GetHitInfo(): TSNumber<uint32>
     GetCleanDamage(): TSNumber<uint32>
     GetFullBlock(): bool;
+    GetDamageType(): TSNumber<uint8>
+    GetAttackType(): TSNumber<uint8>
 }
 
 declare interface TSHealInfo {
